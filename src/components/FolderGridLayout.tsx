@@ -54,6 +54,16 @@ const GridItem = ({ c, path }: { c: OdFolderChildren; path: string }) => {
   )
 }
 
+async function shorten(longPath: string): Promise<string> {
+  const response = await fetch("/api/shorten", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url: longPath }),
+  });
+  const data = await response.json();
+  return data["short"]
+}
+
 const FolderGridLayout = ({
   path,
   folderChildren,
@@ -125,8 +135,10 @@ const FolderGridLayout = ({
                   <span
                     title={t('Copy folder permalink')}
                     className="cursor-pointer rounded px-1.5 py-1 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    onClick={() => {
-                      clipboard.copy(`${getBaseUrl()}${getItemPath(c.name)}`)
+                    onClick={async () => {
+                      const longPath = `${`${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}`
+                      const shortPath = await shorten(longPath)
+                      clipboard.copy(`${getBaseUrl()}/${shortPath}`)
                       toast(t('Copied folder permalink.'), { icon: '👌' })
                     }}
                   >

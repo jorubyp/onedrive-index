@@ -62,6 +62,16 @@ export const DownloadButton = ({
   )
 }
 
+async function shorten(longPath: string): Promise<{ shortPath: string }> {
+  const response = await fetch("/api/shorten", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url: longPath }),
+  });
+  const data = await response.json();
+  return data["short"]
+}
+
 const DownloadButtonGroup = () => {
   const { asPath } = useRouter()
   const hashedToken = getStoredToken(asPath)
@@ -93,10 +103,14 @@ const DownloadButtonGroup = () => {
           btnTitle={t('Copy the permalink to the file to the clipboard')}
         />
         <DownloadButton
-          onClickCallback={() => setMenuOpen(true)}
+          onClickCallback={async () => {
+            clipboard.copy(`${getBaseUrl()}/${await shorten(asPath)}`)
+            toast.success(t('Copied direct link to clipboard.'))
+          }}
           btnColor="teal"
-          btnText={t('Customise link')}
-          btnIcon="pen"
+          btnText={t('Copy file permalink')}
+          btnIcon="copy"
+          btnTitle={t('Copy the permalink to the file to the clipboard')}
         />
       </div>
     </>

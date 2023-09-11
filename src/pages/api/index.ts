@@ -29,6 +29,9 @@ export function encodePath(path: string): string {
   return `:${encodeURIComponent(encodedPath)}`
 }
 
+
+
+
 /**
  * Fetch the access token from Redis storage and check if the token requires a renew
  *
