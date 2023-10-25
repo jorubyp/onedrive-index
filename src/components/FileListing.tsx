@@ -39,6 +39,8 @@ import { PreviewContainer } from './previews/Containers'
 
 import FolderListLayout from './FolderListLayout'
 import FolderGridLayout from './FolderGridLayout'
+import VideoPreviewFileListing from './previews/VideoPreviewFileListing'
+import React from 'react'
 
 // Disabling SSR for some previews
 const EPUBPreview = dynamic(() => import('./previews/EPUBPreview'), {
@@ -146,6 +148,10 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
+const VideoPlayer = React.memo<{ file: OdFileObject }>(function VideoPlayer({ file }) {
+  return <VideoPreviewFileListing file={file}/>;
+});
+
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({})
   const [totalSelected, setTotalSelected] = useState<0 | 1 | 2>(0)
@@ -199,6 +205,9 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find README.md file to render
     const readmeFile = folderChildren.find(c => c.name.toLowerCase() === 'readme.md')
+
+    // Find video file to render
+    const videoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.mp4') || c.name.toLowerCase().endsWith('.mkv'))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
@@ -346,6 +355,18 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
+        {videoFile && (
+          <div className="mt-4">
+            <VideoPlayer file={videoFile as OdFileObject}/>
+          </div>
+        )}
+
+        {readmeFile && (
+          <div className="mt-4">
+            <MarkdownPreview file={readmeFile} path={path} standalone={false} />
+          </div>
+        )}
+
         {layout.name === 'Grid' ? <FolderGridLayout {...folderProps} /> : <FolderListLayout {...folderProps} />}
 
         {!onlyOnePage && (
@@ -380,12 +401,6 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
                 </>
               )}
             </button>
-          </div>
-        )}
-
-        {readmeFile && (
-          <div className="mt-4">
-            <MarkdownPreview file={readmeFile} path={path} standalone={false} />
           </div>
         )}
       </>
