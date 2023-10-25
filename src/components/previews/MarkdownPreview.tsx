@@ -124,7 +124,11 @@ const MarkdownPreview: FC<{
             rehypePlugins={[rehypeKatex, rehypeRaw]}
             components={customRenderer}
           >
-            {content.replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.{11}>/, '')}
+            {
+              content
+                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.{11}>/, '')
+                .replace(/@[^#]+#\d+/, '')
+            }
           </ReactMarkdown>
         </div>
       </PreviewContainer>
