@@ -26,23 +26,28 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           {path
             .slice(0)
             .reverse()
-            .map((p: string, i: number) => (
-              <li key={i} className="flex flex-shrink-0 items-center">
-                <FontAwesomeIcon className="h-3 w-3" icon="angle-right" />
-                <Link
-                  href={`/${path
-                    .slice(0, path.length - i)
-                    .map(p => encodeURIComponent(p))
-                    .join('/')}`}
-                  passHref
-                  className={`ml-1 transition-all duration-75 hover:opacity-70 md:ml-3 ${
-                    i == 0 && 'pointer-events-none opacity-80'
-                  }`}
-                >
-                  {p}
-                </Link>
-              </li>
-            ))}
+            .map((p: string, i: number) => {
+              const videoIdRegexp = /^\[(?<date>\d{8})\] .+ \[.+\] \((?<videoId>[\w-]{11})\)$/
+              const { date, videoId } = p.match(videoIdRegexp)?.groups || {}
+              if (date && videoId) p = `[${date}] ${videoId}`;
+              return (
+                <li key={i} className="flex flex-shrink-0 items-center">
+                  <FontAwesomeIcon className="h-3 w-3" icon="angle-right" />
+                  <Link
+                    href={`/${path
+                      .slice(0, path.length - i)
+                      .map(p => encodeURIComponent(p))
+                      .join('/')}`}
+                    passHref
+                    className={`ml-1 transition-all duration-75 hover:opacity-70 md:ml-3 ${
+                      i == 0 && 'pointer-events-none opacity-80'
+                    }`}
+                  >
+                    {p}
+                  </Link>
+                </li>
+              )
+            })}
           <li className="flex-shrink-0 transition-all duration-75 hover:opacity-80">
             <HomeCrumb />
           </li>
