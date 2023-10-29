@@ -27,7 +27,7 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
             .slice(0)
             .reverse()
             .map((p: string, i: number) => {
-              const videoIdRegexp = /^\[(?<date>\d{8})\] .+ \[.+\] \((?<videoId>[\w-]{11})\)$/
+              const videoIdRegexp = /^\[(?<date>\d{8})\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
               const { date, videoId } = p.match(videoIdRegexp)?.groups || {}
               if (date && videoId) p = `[${date}] ${videoId}`;
               return (
