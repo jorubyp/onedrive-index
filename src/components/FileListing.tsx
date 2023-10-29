@@ -148,8 +148,8 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const VideoPlayer = React.memo<{ file: OdFileObject }>(function VideoPlayer({ file }) {
-  return <VideoPreviewFileListing file={file}/>;
+const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject }>(function VideoPlayer({ file, thumbFile }) {
+  return <VideoPreviewFileListing file={file} thumbFile={thumbFile}/>;
 });
 
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
@@ -208,6 +208,11 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find video file to render
     const videoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.mp4') || c.name.toLowerCase().endsWith('.mkv'))
+    const audioFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.m4a') || c.name.toLowerCase().endsWith('.ogg'))
+    const thumbFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.jpg') || c.name.toLowerCase().endsWith('.webp'))
+    const infoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.info.json'))
+    const descFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.description'))
+    const chatFile = folderChildren.find(c => c.name.toLowerCase().includes('.live_chat.json'))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
@@ -357,7 +362,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
         {videoFile && (
           <div className="mt-4">
-            <VideoPlayer file={videoFile as OdFileObject}/>
+            <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>
           </div>
         )}
 

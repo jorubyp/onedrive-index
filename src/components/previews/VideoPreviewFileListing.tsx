@@ -27,11 +27,12 @@ const VideoPlayer: FC<{
   videoUrl: string
   width?: number
   height?: number
+  basePath: string
   thumbnail: string
   subtitle: string
   isFlv: boolean
   mpegts: any
-}> = ({ videoName, videoUrl, width, height, thumbnail, subtitle, isFlv, mpegts }) => {
+}> = ({ videoName, videoUrl, width, height, basePath, thumbnail, subtitle, isFlv, mpegts }) => {
   useEffect(() => {
     // Really really hacky way to inject subtitles as file blobs into the video element
     axios
@@ -74,9 +75,16 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
+const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject }> = ({ file, thumbFile }) => {
   let { asPath } = useRouter()
+  let folderPath = asPath
   asPath += `/${encodeURIComponent(file.name)}`
+  
+  const formatName = file.name.substring(0, file.name.lastIndexOf('.'))
+  const baseName = formatName.substring(0, formatName.lastIndexOf('.'))
+  const basePath = `${folderPath}/${encodeURIComponent(baseName)}`
+  const infoName = `${formatName}.info.json`
+  const infoPath = `${folderPath}/${encodeURIComponent(infoName)}`
   
   const hashedToken = getStoredToken(asPath)
   const clipboard = useClipboard()
@@ -85,7 +93,9 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
   const { t } = useTranslation()
 
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
-  const thumbnail = `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const thumbnail = thumbFile
+    ? `/api/raw/?path=${`${folderPath}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    : `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
   const vtt = `${asPath.substring(0, asPath.lastIndexOf('.'))}.vtt`
@@ -129,6 +139,7 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
             videoUrl={videoUrl}
             width={file.video?.width}
             height={file.video?.height}
+            basePath={basePath}
             thumbnail={thumbnail}
             subtitle={subtitle}
             isFlv={isFlv}
