@@ -49,19 +49,12 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
                 </li>
               )
             })}
-          <li className="flex-shrink-0 transition-all duration-75 hover:opacity-80">
-            <HomeCrumb />
-          </li>
         </ol>
       )
     }
   }
 
-  return (
-    <div className="text-sm text-gray-600 transition-all duration-75 hover:opacity-80 dark:text-gray-300">
-      <HomeCrumb />
-    </div>
-  )
+  return (<></>)
 }
 
 export default Breadcrumb

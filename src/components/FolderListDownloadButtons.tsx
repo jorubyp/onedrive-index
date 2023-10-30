@@ -109,9 +109,9 @@ const FolderListDownloadButtons = ({
             <DownloadButton
               onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
               btnColor={fileDetails["color"]}
-              btnText={`${fileDetails["fileType"].toLowerCase()} (${humanFileSize(c.size)})`}
+              btnText={`${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
               btnIcon={getFileIcon(c.name, { video: Boolean(c.video)})}
-              btnTitle={`Download ${fileDetails["fileType"].toLowerCase()} (${humanFileSize(c.size)})`}
+              btnTitle={`Download ${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
             />
           )
         })}
@@ -121,9 +121,9 @@ const FolderListDownloadButtons = ({
           <DownloadButton
             onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(videoFile.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
             btnColor={videoDetails["color"]}
-            btnText={`${videoDetails["fileType"].toLowerCase()} (${humanFileSize(videoFile.size)})`}
+            btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
             btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
-            btnTitle={`Download ${videoDetails["fileType"].toLowerCase()} (${humanFileSize(videoFile.size)})`}
+            btnTitle={`Download ${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
           />
         }
         <DownloadButton
@@ -131,7 +131,7 @@ const FolderListDownloadButtons = ({
           btnColor="pink"
           btnText={`All (${humanFileSize(totalSize)})`}
           btnIcon="download"
-          btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
+          btnTitle={t(`Download all (${humanFileSize(totalSize)})`)}
         />
         <DownloadButton
           onClickCallback={async () => {

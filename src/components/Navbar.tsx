@@ -14,6 +14,7 @@ import siteConfig from '../../config/site.config'
 import SearchModal from './SearchModal'
 import SwitchLang from './SwitchLang'
 import useDeviceOS from '../utils/useDeviceOS'
+import Breadcrumb from './Breadcrumb'
 
 const Navbar = () => {
   const router = useRouter()
@@ -83,6 +84,14 @@ const Navbar = () => {
       <SearchModal searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
       <div className="mx-auto flex w-full items-center justify-between space-x-4 px-4 py-1">
+        <nav className="flex items-center justify-between space-x-1 px-4 sm:px-0 sm:pl-1 min-w-0">
+          <Link href="/" passHref className="flex-shrink-0 flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white md:p-2">
+            {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
+            <IconComponent {...iconProps} />
+          </Link>
+          <Breadcrumb query={router.query}/>
+        </nav>
+
         <div className="flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial">
           <button
             className="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2.5 py-1.5 hover:opacity-80 dark:bg-gray-800 dark:text-white md:w-48"
@@ -100,49 +109,7 @@ const Navbar = () => {
               <div className="rounded-lg bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-700">K</div>
             </div>
           </button>
-
-          {siteConfig.links.length !== 0 &&
-            siteConfig.links.map((l: { name: string; link: string }) => (
-              <a
-                key={l.name}
-                href={l.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center space-x-2 hover:opacity-80 dark:text-white"
-              >
-                <FontAwesomeIcon icon={['fab', l.name.toLowerCase() as IconName]} />
-                {/*<span className="hidden text-sm font-medium md:inline-block">
-                  {
-                    // Append link name comments here to add translations
-                    // t('Weibo')
-                    t(l.name)
-                  }
-                </span>*/}
-              </a>
-            ))}
-
-          {siteConfig.email && (
-            <a href={siteConfig.email} className="flex items-center space-x-2 hover:opacity-80 dark:text-white">
-              <FontAwesomeIcon icon={['far', 'envelope']} />
-              {/*<span className="hidden text-sm font-medium md:inline-block">{t('Email')}</span>*/}
-            </a>
-          )}
-
-          {tokenPresent && (
-            <button
-              className="flex items-center space-x-2 hover:opacity-80 dark:text-white"
-              onClick={() => setIsOpen(true)}
-            >
-              <span className="hidden text-sm font-medium md:inline-block">{t('Logout')}</span>
-              <FontAwesomeIcon icon="sign-out-alt" />
-            </button>
-          )}
         </div>
-        
-        <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white md:p-2">
-          {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
-          <IconComponent {...iconProps} />
-        </Link>
       </div>
 
       <Transition appear show={isOpen} as={Fragment}>
