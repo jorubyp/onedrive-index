@@ -12,17 +12,19 @@ import 'katex/dist/katex.min.css'
 
 import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
-import Loading from '../Loading'
+import Loading, { LoadingIcon } from '../Loading'
 import DownloadButtonGroup from '../DownloadBtnGtoup'
-import { DownloadBtnContainer, PreviewContainer } from './Containers'
+
+function PreviewContainer({ children }): JSX.Element {
+  return <div className="rounded-t bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
+}
 
 const MarkdownPreview: FC<{
   file: any
   path: string
-  standalone?: boolean
-}> = ({ file, path, standalone = true }) => {
+}> = ({ file, path }) => {
   // The parent folder of the markdown file, which is also the relative image folder
-  const parentPath = standalone ? path.substring(0, path.lastIndexOf('/')) : path
+  const parentPath = path
 
   const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${file.name}`, path)
   const { t } = useTranslation()
@@ -98,13 +100,11 @@ const MarkdownPreview: FC<{
     return (
       <>
         <PreviewContainer>
-          <Loading loadingText={t('Loading file content...')} />
+          <div className="flex items-center justify-center space-x-1 rounded-t p-3 dark:text-white">
+            <LoadingIcon className="mr-3 -ml-1 h-5 w-5 animate-spin" />
+            <div>Loading</div>
+          </div>
         </PreviewContainer>
-        {standalone && (
-          <DownloadBtnContainer>
-            <DownloadButtonGroup />
-          </DownloadBtnContainer>
-        )}
       </>
     )
   }
@@ -124,15 +124,14 @@ const MarkdownPreview: FC<{
             rehypePlugins={[rehypeKatex, rehypeRaw]}
             components={customRenderer}
           >
-            {content}
+            {
+              content
+                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
+                .replace(/@[^#]+#\d+/, '')
+            }
           </ReactMarkdown>
         </div>
       </PreviewContainer>
-      {standalone && (
-        <DownloadBtnContainer>
-          <DownloadButtonGroup />
-        </DownloadBtnContainer>
-      )}
     </div>
   )
 }

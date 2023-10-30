@@ -42,6 +42,7 @@ import FolderGridLayout from './FolderGridLayout'
 import VideoPreviewFileListing from './previews/VideoPreviewFileListing'
 import React from 'react'
 import FolderListDownloadButtons from './FolderListDownloadButtons'
+import ReadmePreview from './previews/ReadmePreview'
 
 // Disabling SSR for some previews
 const EPUBPreview = dynamic(() => import('./previews/EPUBPreview'), {
@@ -154,7 +155,7 @@ const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject }>(
 });
 
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function VideoPlayer({ file, path }) {
-  return <MarkdownPreview file={file} path={path} standalone={false} />;
+  return <ReadmePreview file={file} path={path} />;
 });
 
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
