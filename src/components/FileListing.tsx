@@ -174,7 +174,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const path = queryToPath(query)
 
   const { data, error, size, setSize } = useProtectedSWRInfinite(path)
-  const { data: parentData } = useProtectedSWRInfinite(path.substring(0, path.lastIndexOf('/')))
+  
   if (error) {
     // If error includes 403 which means the user has not completed initial setup, redirect to OAuth page
     if (error.status === 403) {
@@ -188,7 +188,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       </PreviewContainer>
     )
   }
-  if (!data || path !== '/' && !parentData) {
+  if (!data) {
     return (
       <PreviewContainer>
         <Loading loadingText={t('Loading ...')} />
@@ -205,14 +205,6 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const onlyOnePage = data && typeof data[0].next === 'undefined'
 
   if ('folder' in responses[0]) {
-    let thisFolder: OdFileObject | undefined;
-    if (parentData) {
-      const parentRespones: any[] = parentData ? [].concat(...parentData) : []
-      const parentChildren = [].concat(...parentRespones.map(r => r.folder.value)) as OdFolderObject['value']
-      const parentName = decodeURIComponent(path.substring(path.lastIndexOf('/') + 1))
-      thisFolder = parentChildren.find(c => c.name === parentName) as OdFileObject
-      console.log(thisFolder)
-    }
     // Expand list of API returns into flattened file data
     let folderChildren = [].concat(...responses.map(r => r.folder.value)) as OdFolderObject['value']
 
@@ -227,7 +219,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
 
     // Filtered file list helper
-    const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password')
+    const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password' && c.name.toLowerCase() !== 'readme.md')
 
     // File selection
     const genTotalSelected = (selected: { [key: string]: boolean }) => {
@@ -372,7 +364,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         {readmeFile && (
           <div className="mt-4">
             <ReadMePreview file={readmeFile as OdFileObject} path={path} />
-            <FolderListDownloadButtons { ...folderProps } thisFolder={thisFolder} />
+            <FolderListDownloadButtons { ...folderProps } />
           </div>
         )}
 

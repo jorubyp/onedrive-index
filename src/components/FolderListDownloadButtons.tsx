@@ -72,15 +72,20 @@ async function shorten(longPath: string): Promise<string> {
 const FolderListDownloadButtons = ({
   path,
   folderChildren,
-  folderGenerating,
-  handleFolderDownload,
+  selected,
+  handleSelectedDownload,
   toast,
-  thisFolder,
 }) => {
   const clipboard = useClipboard()
   const hashedToken = getStoredToken(path)
 
   const { t } = useTranslation()
+  
+  let totalSize = 0
+  folderChildren.forEach((c: OdFileObject) => {
+    totalSize += c.size
+    selected[c.id] = true
+  })
 
   // Get item path from item name
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
@@ -105,14 +110,11 @@ const FolderListDownloadButtons = ({
           )
         })}
         <DownloadButton
-          onClickCallback={folderGenerating[thisFolder.id]
-            ? null
-            : handleFolderDownload(path, thisFolder.id, thisFolder.name)
-          }
+          onClickCallback={handleSelectedDownload}
           btnColor="red"
-          btnText={`All (${humanFileSize(thisFolder.size)})`}
+          btnText={`All (${humanFileSize(totalSize)})`}
           btnIcon="download"
-          btnTitle={t(`Download All (${humanFileSize(thisFolder.size)})`)}
+          btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
         />
         <DownloadButton
           onClickCallback={async () => {
