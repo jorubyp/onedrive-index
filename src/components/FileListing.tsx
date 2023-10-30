@@ -260,13 +260,15 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           name: c.name,
           url: `/api/raw/?path=${path}/${encodeURIComponent(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`,
         }))
-      files.forEach(file => {
-        const el = document.createElement('a')
-        el.style.display = 'none'
-        document.body.appendChild(el)
-        el.href = file.url
-        el.click()
-        el.remove()
+      files.forEach((file, i) => {
+        setTimeout(() => {
+          const el = document.createElement('a')
+          el.style.display = 'none'
+          document.body.appendChild(el)
+          el.href = file.url
+          el.click()
+          el.remove()
+        }, i * 100)
       })
       return
       if (files.length == 1) {
