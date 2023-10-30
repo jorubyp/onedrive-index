@@ -112,7 +112,7 @@ const FolderListDownloadButtons = ({
         })}
         <DownloadButton
           onClickCallback={handleSelectedDownload}
-          btnColor="red"
+          btnColor="pink"
           btnText={`All (${humanFileSize(totalSize)})`}
           btnIcon="download"
           btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
