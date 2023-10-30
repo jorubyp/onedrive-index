@@ -260,16 +260,15 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           name: c.name,
           url: `/api/raw/?path=${path}/${encodeURIComponent(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`,
         }))
-      files.forEach((file, i) => {
-        setTimeout(() => {
-          const el = document.createElement('a')
-          el.style.display = 'none'
-          document.body.appendChild(el)
-          el.href = file.url
-          el.click()
-          el.remove()
-        }, i * 500)
-      })
+      const tmpLink = document.createElement("a")
+      tmpLink.style.display = 'none'
+      document.body.appendChild(tmpLink)
+      for( var i = 0; i < files.length; i++ ) {
+        tmpLink.setAttribute( 'href', files[i].url );
+        tmpLink.setAttribute( 'download', files[i].name );
+        tmpLink.click();
+      }
+      document.body.removeChild(tmpLink)
       return
       if (files.length == 1) {
         const el = document.createElement('a')
