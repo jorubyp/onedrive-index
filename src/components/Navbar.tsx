@@ -83,12 +83,6 @@ const Navbar = () => {
       <SearchModal searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
       <div className="mx-auto flex w-full items-center justify-between space-x-4 px-4 py-1">
-        <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white md:p-2">
-          {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
-          <IconComponent {...iconProps} />
-          <span className="hidden font-bold sm:block">{siteConfig.title}</span>
-        </Link>
-
         <div className="flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial">
           <button
             className="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2.5 py-1.5 hover:opacity-80 dark:bg-gray-800 dark:text-white md:w-48"
@@ -106,8 +100,6 @@ const Navbar = () => {
               <div className="rounded-lg bg-gray-200 px-2 py-1 text-xs font-medium dark:bg-gray-700">K</div>
             </div>
           </button>
-
-          <SwitchLang />
 
           {siteConfig.links.length !== 0 &&
             siteConfig.links.map((l: { name: string; link: string }) => (
@@ -146,6 +138,11 @@ const Navbar = () => {
             </button>
           )}
         </div>
+        
+        <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white md:p-2">
+          {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
+          <IconComponent {...iconProps} />
+        </Link>
       </div>
 
       <Transition appear show={isOpen} as={Fragment}>
