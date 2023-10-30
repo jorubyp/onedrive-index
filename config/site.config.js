@@ -9,7 +9,7 @@ module.exports = {
   // and the writing format is 'iconPrefix-iconName', e.g. icon: 'fab-github',
   // If the FontAwesomIcon you choose does not display properly, you may need to import it in `src/pages/_app.tsx`.
   // However, the browser's tab bar icon is STILL determined by /public/favicon.ico
-  icon: 'fas-cube', // or icon: '/icons/128.png', to use a image.
+  icon: process.env.NEXT_PUBLIC_ICON || '64r.png', // or icon: '/icons/128.png', to use a image.
 
   // Prefix for KV Storage.
   // You can put this in Vercel's environment variable 'KV_PREFIX' without any modification here.
@@ -31,16 +31,11 @@ module.exports = {
   // [OPTIONAL] The footer component of your website. You can write HTML here, but you need to escape double quotes - changing " to \".
   // You can write anything here, and if you like badges, generate some with https://shields.io
   footer:
-  'Powered by <a href="https://github.com/iRedScarf/onedrive-index" target="_blank" rel="noopener noreferrer">onedrive-index</a>.',
+  '',//'Powered by <a href="https://github.com/iRedScarf/onedrive-index" target="_blank" rel="noopener noreferrer">onedrive-index</a>.',
 
   // [OPTIONAL] This is an array of names and links for setting your social information and links.
   // In the latest update, all brand icons inside font awesome is supported and the icon to render is based on the name you provide. See the documentation for details.
-  links: [
-    {
-      name: 'GitHub',
-      link: 'https://github.com/iRedScarf/onedrive-index',
-    },
-  ],
+  links: [],
 
   // [OPTIONAL] This represents the maximum number of items that one directory lists, pagination supported.
   // Do note that this is limited up to 200 items by the upstream OneDrive API.
