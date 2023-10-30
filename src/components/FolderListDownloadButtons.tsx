@@ -75,6 +75,7 @@ const FolderListDownloadButtons = ({
   selected,
   handleSelectedDownload,
   toast,
+  videoFile,
 }) => {
   const clipboard = useClipboard()
   const hashedToken = getStoredToken(path)
@@ -91,6 +92,8 @@ const FolderListDownloadButtons = ({
   // Get item path from item name
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
   
+  const videoDetails = GetFileDetails(videoFile)
+  
   return (
     <div className="sticky bottom-0 left-0 right-0 z-10 rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="flex flex-wrap justify-center gap-2">
@@ -98,18 +101,31 @@ const FolderListDownloadButtons = ({
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
           const bdet = GetFileDetails(b as OdFileObject) || { index: 99 }
           return adet["index"] > bdet["index"]
-        }).map((c: OdFolderChildren) => {
+        })
+        .filter((c: OdFolderChildren) => c.id !== (videoFile as OdFileObject).id)
+        .map((c: OdFolderChildren) => {
           const fileDetails = GetFileDetails(c as OdFileObject)
           if (fileDetails) return (
             <DownloadButton
               onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
               btnColor={fileDetails["color"]}
-              btnText={fileDetails["fileType"]}
+              btnText={`${fileDetails["fileType"].toLowerCase()} (${humanFileSize(c.size)})`}
               btnIcon={getFileIcon(c.name, { video: Boolean(c.video)})}
               btnTitle={`Download ${fileDetails["fileType"].toLowerCase()} (${humanFileSize(c.size)})`}
             />
           )
         })}
+      </div>
+      <div className="mt-2 flex flex-wrap justify-center gap-2">
+        {videoDetails &&
+          <DownloadButton
+            onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(videoFile.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
+            btnColor={videoDetails["color"]}
+            btnText={`${videoDetails["fileType"].toLowerCase()} (${humanFileSize(videoFile.size)})`}
+            btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
+            btnTitle={`Download ${videoDetails["fileType"].toLowerCase()} (${humanFileSize(videoFile.size)})`}
+          />
+        }
         <DownloadButton
           onClickCallback={handleSelectedDownload}
           btnColor="pink"

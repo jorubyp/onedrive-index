@@ -213,10 +213,17 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find README.md file to render
     const readmeFile = folderChildren.find(c => c.name.toLowerCase() === 'readme.md')
+    
+    const videoExts = [
+      ".mp4", ".mkv", ".webm"
+    ]
+    const thumbExts = [
+      ".jpg", ".png", ".webp"
+    ]
 
     // Find video file to render
-    const videoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.mp4') || c.name.toLowerCase().endsWith('.mkv'))
-    const thumbFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.jpg') || c.name.toLowerCase().endsWith('.webp'))
+    const videoFile = folderChildren.find(c => videoExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
+    const thumbFile = folderChildren.find(c => thumbExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
@@ -373,10 +380,10 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
-        {readmeFile && (
+        {readmeFile && videoFile && (
           <div className="mt-4">
             <ReadMePreview file={readmeFile as OdFileObject} path={path} />
-            <FolderListDownloadButtons { ...folderProps } />
+            <FolderListDownloadButtons { ...folderProps } videoFile={videoFile} />
           </div>
         )}
 
