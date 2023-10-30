@@ -147,57 +147,6 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject }> = ({ fil
           />
         )}
       </PreviewContainer>
-
-      <DownloadBtnContainer>
-        <div className="flex flex-wrap justify-center gap-2">
-          <DownloadButton
-            onClickCallback={() => window.open(videoUrl)}
-            btnColor="blue"
-            btnText={t('Download')}
-            btnIcon="file-download"
-          />
-          <DownloadButton
-            onClickCallback={async () => {
-              clipboard.copy(`${getBaseUrl()}/${await shorten(window?.location.pathname.replace(/\/$/, ''))}`)
-              toast.success(t('Copied permalink to clipboard.'))
-            }}
-            btnColor="teal"
-            btnText={t('Copy permalink')}
-            btnIcon="copy"
-            btnTitle={t('Copy the permalink to the clipboard')}
-          />
-          <DownloadButton
-            onClickCallback={() => {
-              clipboard.copy(`${getBaseUrl()}/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
-              toast.success(t('Copied direct link to clipboard.'))
-            }}
-            btnColor="pink"
-            btnText={t('Copy direct link')}
-            btnIcon="copy"
-          />
-
-          <DownloadButton
-            onClickCallback={() => window.open(`iina://weblink?url=${getBaseUrl()}${videoUrl}`)}
-            btnText="IINA"
-            btnImage="/players/iina.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`vlc://${getBaseUrl()}${videoUrl}`)}
-            btnText="VLC"
-            btnImage="/players/vlc.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`potplayer://${getBaseUrl()}${videoUrl}`)}
-            btnText="PotPlayer"
-            btnImage="/players/potplayer.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`nplayer-http://${window?.location.hostname ?? ''}${videoUrl}`)}
-            btnText="nPlayer"
-            btnImage="/players/nplayer.png"
-          />
-        </div>
-      </DownloadBtnContainer>
     </>
   )
 }

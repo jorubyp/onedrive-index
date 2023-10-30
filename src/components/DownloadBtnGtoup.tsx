@@ -23,6 +23,18 @@ const btnStyleMap = (btnColor?: string) => {
     pink: 'hover:text-pink-600 focus:ring-pink-200 focus:text-pink-600 border-pink-300 dark:border-pink-700 dark:focus:ring-pink-500',
     yellow:
       'hover:text-yellow-400 focus:ring-yellow-100 focus:text-yellow-400 border-yellow-300 dark:border-yellow-400 dark:focus:ring-yellow-300',
+    black: 
+      'hover:text-black-400 focus:ring-black-100 focus:text-black-400 border-black-300 dark:border-black-400 dark:focus:ring-black-300',
+    white: 
+      'hover:text-white-400 focus:ring-white-100 focus:text-white-400 border-white-300 dark:border-white-400 dark:focus:ring-white-300',
+    indigo: 
+      'hover:text-indigo-400 focus:ring-indigo-100 focus:text-indigo-400 border-indigo-300 dark:border-indigo-400 dark:focus:ring-indigo-300',
+    purple: 
+      'hover:text-purple-400 focus:ring-purple-100 focus:text-purple-400 border-purple-300 dark:border-purple-400 dark:focus:ring-purple-300',
+    cyan: 
+      'hover:text-cyan-400 focus:ring-cyan-100 focus:text-cyan-400 border-cyan-300 dark:border-cyan-400 dark:focus:ring-cyan-300',
+    orange: 
+      'hover:text-orange-400 focus:ring-orange-100 focus:text-orange-400 border-orange-300 dark:border-orange-400 dark:focus:ring-orange-300',
   }
 
   if (btnColor) {

@@ -41,6 +41,7 @@ import FolderListLayout from './FolderListLayout'
 import FolderGridLayout from './FolderGridLayout'
 import VideoPreviewFileListing from './previews/VideoPreviewFileListing'
 import React from 'react'
+import FolderListDownloadButtons from './FolderListDownloadButtons'
 
 // Disabling SSR for some previews
 const EPUBPreview = dynamic(() => import('./previews/EPUBPreview'), {
@@ -152,6 +153,10 @@ const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject }>(
   return <VideoPreviewFileListing file={file} thumbFile={thumbFile}/>;
 });
 
+const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function VideoPlayer({ file, path }) {
+  return <MarkdownPreview file={file} path={path} standalone={false} />;
+});
+
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const [selected, setSelected] = useState<{ [key: string]: boolean }>({})
   const [totalSelected, setTotalSelected] = useState<0 | 1 | 2>(0)
@@ -169,7 +174,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const path = queryToPath(query)
 
   const { data, error, size, setSize } = useProtectedSWRInfinite(path)
-
+  const { data: parentData } = useProtectedSWRInfinite(path.substring(0, path.lastIndexOf('/')))
   if (error) {
     // If error includes 403 which means the user has not completed initial setup, redirect to OAuth page
     if (error.status === 403) {
@@ -183,7 +188,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       </PreviewContainer>
     )
   }
-  if (!data) {
+  if (!data || path !== '/' && !parentData) {
     return (
       <PreviewContainer>
         <Loading loadingText={t('Loading ...')} />
@@ -200,6 +205,14 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
   const onlyOnePage = data && typeof data[0].next === 'undefined'
 
   if ('folder' in responses[0]) {
+    let thisFolder: OdFileObject | undefined;
+    if (parentData) {
+      const parentRespones: any[] = parentData ? [].concat(...parentData) : []
+      const parentChildren = [].concat(...parentRespones.map(r => r.folder.value)) as OdFolderObject['value']
+      const parentName = decodeURIComponent(path.substring(path.lastIndexOf('/') + 1))
+      thisFolder = parentChildren.find(c => c.name === parentName) as OdFileObject
+      console.log(thisFolder)
+    }
     // Expand list of API returns into flattened file data
     let folderChildren = [].concat(...responses.map(r => r.folder.value)) as OdFolderObject['value']
 
@@ -208,11 +221,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find video file to render
     const videoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.mp4') || c.name.toLowerCase().endsWith('.mkv'))
-    const audioFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.m4a') || c.name.toLowerCase().endsWith('.ogg'))
     const thumbFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.jpg') || c.name.toLowerCase().endsWith('.webp'))
-    const infoFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.info.json'))
-    const descFile = folderChildren.find(c => c.name.toLowerCase().endsWith('.description'))
-    const chatFile = folderChildren.find(c => c.name.toLowerCase().includes('.live_chat.json'))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
@@ -334,9 +343,9 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           setFolderGenerating({ ...folderGenerating, [id]: false })
           toast.success(t('Finished downloading folder.'), { id: toastId })
         })
-        .catch(() => {
+        .catch((reason) => {
           setFolderGenerating({ ...folderGenerating, [id]: false })
-          toast.error(t('Failed to download folder.'), { id: toastId })
+          toast.error(t(`Failed to download folder: ${reason}`), { id: toastId })
         })
     }
 
@@ -360,21 +369,22 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
+        {readmeFile && (
+          <div className="mt-4">
+            <ReadMePreview file={readmeFile as OdFileObject} path={path} />
+            <FolderListDownloadButtons { ...folderProps } thisFolder={thisFolder} />
+          </div>
+        )}
+
         {videoFile && (
           <div className="mt-4">
             <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>
           </div>
         )}
 
-        {readmeFile && (
-          <div className="mt-4">
-            <MarkdownPreview file={readmeFile} path={path} standalone={false} />
-          </div>
-        )}
+        {!videoFile && (layout.name === 'Grid' ? <FolderGridLayout {...folderProps} /> : <FolderListLayout {...folderProps} />)}
 
-        {layout.name === 'Grid' ? <FolderGridLayout {...folderProps} /> : <FolderListLayout {...folderProps} />}
-
-        {!onlyOnePage && (
+        {(!videoFile && !onlyOnePage) && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
             <div className="border-b border-gray-200 p-3 text-center font-mono text-sm text-gray-400 dark:border-gray-700">
               {t('- showing {{count}} page(s) ', {

@@ -62,6 +62,5 @@ export async function setShortPath(longPath: string) {
 
 export async function getLongPath(shortPath: string): Promise<string | undefined> {
   const link: UrlInfo | null = await kv.hget(`${siteConfig.kvPrefix}:links`, shortPath)
-  console.log({link})
   return link ? link.longPath : '/'
 }
