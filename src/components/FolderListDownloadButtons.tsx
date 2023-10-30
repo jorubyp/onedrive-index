@@ -106,7 +106,7 @@ const FolderListDownloadButtons = ({
               btnColor={fileDetails["color"]}
               btnText={fileDetails["fileType"]}
               btnIcon={getFileIcon(c.name, { video: Boolean(c.video)})}
-              btnTitle={`Download ${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
+              btnTitle={`Download ${fileDetails["fileType"].toLowerCase()} (${humanFileSize(c.size)})`}
             />
           )
         })}
