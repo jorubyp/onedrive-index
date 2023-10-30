@@ -82,7 +82,8 @@ const FolderListDownloadButtons = ({
   const { t } = useTranslation()
   
   let totalSize = 0
-  folderChildren.forEach((c: OdFileObject) => {
+  folderChildren.forEach((c: OdFolderChildren) => {
+    if (c.folder) return
     totalSize += c.size
     selected[c.id] = true
   })
