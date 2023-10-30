@@ -29,9 +29,10 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
             .map((p: string, i: number) => {
               const videoIdRegexp = /^\[(?<date>\d{8})\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
               const { date, videoId } = p.match(videoIdRegexp)?.groups || {}
-              if (date && videoId) p = `[${date}] ${videoId}`;
+              const tail = date && videoId ? ` (${videoId})` : ''
+              if (date && videoId) p = p.substring(0, p.lastIndexOf(` (${videoId})`));
               return (
-                <li key={i} className="flex flex-shrink-0 items-center">
+                <li key={i} className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={tail}>
                   <FontAwesomeIcon className="h-3 w-3" icon="angle-right" />
                   <Link
                     href={`/${path
