@@ -76,8 +76,10 @@ const formatChildName = (name: string) => {
 }
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = formatChildName(name)
-  const extension = folder ? '' : getRawExtension(original)
-  const prename = folder ? original : original.substring(0, original.length - extension.length)
+  const videoIdRegexp = /^\[\d{8}\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
+  const { videoId } = original.match(videoIdRegexp)?.groups || {}
+  const extension = videoId && folder ? ` (${videoId})` : folder ? '' : getRawExtension(original)
+  const prename = extension.length < 1 ? original : original.substring(0, original.length - extension.length)
   return (
     <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={extension}>
       {prename}
@@ -384,7 +386,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           </div>
         )}
 
-        {!videoFile && (layout.name === 'Grid' ? <FolderGridLayout {...folderProps} /> : <FolderListLayout {...folderProps} />)}
+        {!videoFile && (<FolderListLayout {...folderProps} />)}
 
         {(!videoFile && !onlyOnePage) && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
