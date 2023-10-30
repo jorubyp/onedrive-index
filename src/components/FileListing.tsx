@@ -268,7 +268,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
           el.href = file.url
           el.click()
           el.remove()
-        }, i * 100)
+        }, i * 500)
       })
       return
       if (files.length == 1) {
