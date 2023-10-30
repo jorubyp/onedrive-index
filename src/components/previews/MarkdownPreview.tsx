@@ -126,7 +126,7 @@ const MarkdownPreview: FC<{
           >
             {
               content
-                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.{11}>/, '')
+                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
                 .replace(/@[^#]+#\d+/, '')
             }
           </ReactMarkdown>
