@@ -116,16 +116,6 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
     }
   }, [isFlv])
 
-  async function shorten(longPath: string): Promise<{ shortPath: string }> {
-    const response = await fetch("/api/shorten", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: longPath }),
-    });
-    const data = await response.json();
-    return data["short"]
-  }
-
   return (
     <>
       <CustomEmbedLinkMenu path={asPath} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />

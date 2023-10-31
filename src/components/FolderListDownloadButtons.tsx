@@ -59,14 +59,10 @@ const GetFileDetails = (file: OdFileObject) => {
   }
 }
 
-async function shorten(longPath: string): Promise<string> {
-  const response = await fetch("/api/shorten", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: longPath }),
-  });
-  const data = await response.json();
-  return data["short"]
+const shorten = (longPath: string) => {
+  const videoIdRegexp = /.+ \[.+\] \((?<videoId>[^)]+)\)$/
+  const { videoId } = decodeURIComponent(longPath).match(videoIdRegexp)?.groups || {}
+  return videoId
 }
 
 const FolderListDownloadButtons: FC<{
@@ -121,14 +117,19 @@ const FolderListDownloadButtons: FC<{
           btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
         />
         <DownloadButton
-          onClickCallback={async () => {
-            clipboard.copy(`${getBaseUrl()}/${await shorten(path)}`)
-            toast.success(t('Copied short link to clipboard.'))
+          onClickCallback={() => {
+            const shortPath = shorten(path)
+            if (shortPath) {
+              clipboard.copy(`${getBaseUrl()}/${shortPath}`)
+            } else {
+              clipboard.copy(`${getBaseUrl()}/${path}}`)
+            }
+            toast.success(t('Copied link to clipboard.'))
           }}
           btnColor="teal"
           btnText={t('Copy Link')}
           btnIcon="copy"
-          btnTitle={t('Copy short link to the clipboard')}
+          btnTitle={t('Copy link to the clipboard')}
         />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
