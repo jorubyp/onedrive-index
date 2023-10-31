@@ -58,7 +58,7 @@ const formatChildName = (name: string) => {
 }
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = formatChildName(name)
-  const videoIdRegexp = /^\[\d{8}\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
+  const videoIdRegexp = /.*\[\d{8}\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
   const { videoId } = original.match(videoIdRegexp)?.groups || {}
   const extension = videoId && folder ? ` (${videoId})` : folder ? '' : getRawExtension(original)
   const prename = extension.length < 1 ? original : original.substring(0, original.length - extension.length)

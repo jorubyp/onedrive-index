@@ -16,6 +16,7 @@ import { LoadingIcon } from './Loading'
 import { getFileIcon } from '../utils/getFileIcon'
 import { fetcher } from '../utils/fetchWithSWR'
 import siteConfig from '../../config/site.config'
+import { ChildName } from './FileListing'
 
 /**
  * Extract the searched item's path in field 'parentReference' and convert it to the
@@ -99,14 +100,14 @@ function SearchResultItemTemplate({
       }`}
     >
       <FontAwesomeIcon icon={driveItem.file ? getFileIcon(driveItem.name) : ['far', 'folder']} />
-      <div>
-        <div className="text-sm font-medium leading-8">{driveItem.name}</div>
+      <div className='overflow-hidden truncate'>
+        <div className="overflow-hidden truncate text-sm font-medium leading-8"><ChildName name={driveItem.name} folder={true}/></div>
         <div
           className={`overflow-hidden truncate font-mono text-xs opacity-60 ${
             itemDescription === 'Loading ...' && 'animate-pulse'
           }`}
         >
-          {itemDescription}
+          <ChildName name={itemDescription} folder={true} />
         </div>
       </div>
     </Link>
