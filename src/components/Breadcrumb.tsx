@@ -32,7 +32,7 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
               const tail = date && videoId ? ` (${videoId})` : undefined
               if (date && videoId) p = p.substring(0, p.lastIndexOf(` (${videoId})`));
               return (
-                <li key={i} className={`${i == 0 ? 'truncate' : 'flex-shrink-0 '} before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
+                <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 '}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
                   <FontAwesomeIcon className="h-3 w-3" icon="angle-right" />
                   <Link
                     href={`/${path
