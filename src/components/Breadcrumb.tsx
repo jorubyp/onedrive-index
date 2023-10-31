@@ -33,14 +33,14 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
               if (date && videoId) p = p.substring(0, p.lastIndexOf(` (${videoId})`));
               return (
                 <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 min-w-[50px] '}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
-                  <FontAwesomeIcon className="h-3 w-3" icon="angle-right" />
+                  {path.length - 1 !== i && <FontAwesomeIcon className="h-3 w-3 mr-1 md:mr-3 " icon="angle-right" />}
                   <Link
                     href={`/${path
                       .slice(0, path.length - i)
                       .map(p => encodeURIComponent(p))
                       .join('/')}`}
                     passHref
-                    className={`ml-1 transition-all duration-75 hover:opacity-70 md:ml-3 ${
+                    className={`transition-all duration-75 hover:opacity-70 ${
                       i == 0 && 'pointer-events-none opacity-80'
                     }`}
                   >
