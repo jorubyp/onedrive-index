@@ -9,14 +9,33 @@ import Footer from '../components/Footer'
 import Breadcrumb from '../components/Breadcrumb'
 import SwitchLayout from '../components/SwitchLayout'
 
+const escape_chars = [
+  ["<", "＜"],
+  [">", "＞"],
+  [":", "："],
+  ['"', '″'],
+  ["/", "⧸"],
+  ["\\", "⧹"],
+  ["|", "｜"],
+  ["?", "？"],
+  ["*", "＊"],
+]
+
+const titleUnescape = (title: string) => {
+  for (const [ to_char, from_char] of escape_chars)
+    title = title.replaceAll(from_char, to_char)
+  return title
+}
+
 export default function Folders() {
   const { query } = useRouter()
   const title = (query.path && Array.isArray(query.path) ? query.path[query.path.length - 1] : '')
+  const formattedTitle = titleUnescape(title)
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900">
       <Head>
-        <title>{title}</title>
+        <title>{formattedTitle}</title>
       </Head>
 
       <main className="flex w-full flex-1 flex-col bg-gray-50 dark:bg-gray-800">
