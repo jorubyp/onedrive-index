@@ -156,7 +156,7 @@ const FolderListDownloadButtons: FC<{
   const videoDetails = GetFileDetails(videoFile)
   
   return (
-    <div className="sticky bottom-0 left-0 right-0 z-10 rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
+    <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="mb-2 flex flex-wrap justify-center gap-2">
         {videoDetails &&
           <DownloadButton
