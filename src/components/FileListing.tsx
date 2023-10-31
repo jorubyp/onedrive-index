@@ -384,7 +384,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         <Toaster />
 
         {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>}
-        {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile} />}
+        {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
         {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
         {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
 

@@ -69,7 +69,14 @@ async function shorten(longPath: string): Promise<string> {
   return data["short"]
 }
 
-const FolderListDownloadButtons = ({
+const FolderListDownloadButtons: FC<{
+  path: string,
+  folderChildren: OdFolderChildren[],
+  selected: { [key: string]: boolean },
+  handleSelectedDownload: any,
+  toast: any,
+  videoFile: OdFileObject
+}> = ({
   path,
   folderChildren,
   selected,
@@ -84,7 +91,7 @@ const FolderListDownloadButtons = ({
   
   let totalSize = 0
   for (let i = 0; i < folderChildren.length; i++) {
-    if (folderChildren[i].folder) return
+    if (folderChildren[i].folder) continue
     totalSize += folderChildren[i].size
     selected[folderChildren[i].id] = true
   }
@@ -128,7 +135,7 @@ const FolderListDownloadButtons = ({
         {folderChildren.sort((a: OdFolderChildren, b: OdFolderChildren) => {
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
           const bdet = GetFileDetails(b as OdFileObject) || { index: 99 }
-          return adet["index"] > bdet["index"]
+          return adet["index"] > bdet["index"] ? 0 : 1
         })
         .filter((c: OdFolderChildren) => c.id !== (videoFile as OdFileObject).id)
         .map((c: OdFolderChildren) => {
