@@ -85,7 +85,7 @@ const Navbar = () => {
 
       <div className={`${asPath == '/' ? 'space-x-2 ' : 'flex-col md:flex-row space-y-1'}md:flex-row mx-auto flex w-full items-center justify-between md:space-x-4 px-4 py-1`}>
         <nav className={`${asPath == '/' ? '' : 'w-full '}md:w-fit flex items-center space-x-1 md:pr-4 sm:px-0 min-w-0`}>
-          <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white min-w-[20px] mr-1 md:mr-2 false">
+          <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white min-w-max mr-1 md:mr-2 false">
             {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
             <IconComponent {...iconProps} />
           </Link>
