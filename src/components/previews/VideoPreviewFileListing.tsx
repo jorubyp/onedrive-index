@@ -77,7 +77,7 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject }> = ({ file, thumbFile }) => {
+const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject, subsFile: OdFileObject | undefined}> = ({ file, thumbFile, subsFile }) => {
   let { asPath } = useRouter()
   let folderPath = asPath
   asPath += `/${encodeURIComponent(file.name)}`
@@ -100,8 +100,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject }> = ({ fil
     : `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
-  const vtt = `${asPath.substring(0, asPath.lastIndexOf('.'))}.vtt`
-  const subtitle = `/api/raw/?path=${vtt}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const subtitle = subsFile && `/api/raw/?path=${`${folderPath}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We also format the raw video file for the in-browser player as well as all other players
   const videoUrl = `/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
@@ -143,7 +142,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject }> = ({ fil
             height={file.video?.height}
             basePath={basePath}
             thumbnail={thumbnail}
-            subtitle={subtitle}
+            subtitle={subtitle ?? ''}
             isFlv={isFlv}
             mpegts={mpegts}
           />

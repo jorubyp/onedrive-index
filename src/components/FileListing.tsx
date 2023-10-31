@@ -153,8 +153,8 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject }>(function VideoPlayer({ file, thumbFile }) {
-  return <VideoPreviewFileListing file={file} thumbFile={thumbFile}/>;
+const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
+  return <VideoPreviewFileListing file={file} thumbFile={thumbFile} subsFile={subsFile as OdFileObject}/>;
 });
 
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function VideoPlayer({ file, path }) {
@@ -223,10 +223,14 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     const thumbExts = [
       ".jpg", ".png", ".webp"
     ]
+    const subsExts = [
+      ".vtt", ".srt", ".ass"
+    ]
 
     // Find video file to render
     const videoFile = folderChildren.find(c => videoExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
     const thumbFile = folderChildren.find(c => thumbExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
+    const subsFile = folderChildren.find(c => subsExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
@@ -383,7 +387,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
-        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>}
+        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject} subsFile={subsFile as OdFileObject | undefined} />}
         {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
         {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
         {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
