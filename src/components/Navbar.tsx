@@ -91,7 +91,7 @@ const Navbar = () => {
           <Breadcrumb query={router.query}/>
         </nav>
 
-        <div className="flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial">
+        <div className="hidden md:block flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial">
           <button
             className="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2.5 py-1.5 hover:opacity-80 dark:bg-gray-800 dark:text-white md:w-48"
             onClick={openSearchBox}

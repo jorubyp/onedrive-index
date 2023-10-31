@@ -30,7 +30,7 @@ export default function Folders() {
   const formattedTitle = titleUnescape(title)
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900 min-w-[600px]">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900">
       <Head>
         <title>{formattedTitle}</title>
       </Head>
