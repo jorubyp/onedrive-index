@@ -14,13 +14,15 @@ import { getBaseUrl } from '../../utils/getBaseUrl'
 import { getExtension } from '../../utils/getFileIcon'
 import { getStoredToken } from '../../utils/protectedRouteHandler'
 
-import { DownloadButton } from '../DownloadBtnGtoup'
-import { DownloadBtnContainer, PreviewContainer } from './Containers'
 import FourOhFour from '../FourOhFour'
 import Loading from '../Loading'
 import CustomEmbedLinkMenu from '../CustomEmbedLinkMenu'
 
 import 'plyr-react/plyr.css'
+
+function PreviewContainer({ children }): JSX.Element {
+  return <div className="rounded-t bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
+}
 
 const VideoPlayer: FC<{
   videoName: string

@@ -16,7 +16,7 @@ import Loading, { LoadingIcon } from '../Loading'
 import DownloadButtonGroup from '../DownloadBtnGtoup'
 
 function PreviewContainer({ children }): JSX.Element {
-  return <div className="rounded-t bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
+  return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
 }
 
 const MarkdownPreview: FC<{
@@ -26,7 +26,7 @@ const MarkdownPreview: FC<{
   // The parent folder of the markdown file, which is also the relative image folder
   const parentPath = path
 
-  const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${file.name}`, path)
+  const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${encodeURIComponent(file.name)}`, path)
   const { t } = useTranslation()
 
   // Check if the image is relative path instead of a absolute url
@@ -126,6 +126,8 @@ const MarkdownPreview: FC<{
           >
             {
               content
+                .replace(/### `+\[20\d{6}\] /, '### ')
+                .replace(/\[.+\] \([^)]+\)`+\r/, '')
                 .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
                 .replace(/@[^#]+#\d+/, '')
             }

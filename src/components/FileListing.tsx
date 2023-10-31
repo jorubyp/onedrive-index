@@ -43,6 +43,7 @@ import VideoPreviewFileListing from './previews/VideoPreviewFileListing'
 import React from 'react'
 import FolderListDownloadButtons from './FolderListDownloadButtons'
 import ReadmePreview from './previews/ReadmePreview'
+import DescriptionPreview from './previews/DescriptionPreview'
 
 // Disabling SSR for some previews
 const EPUBPreview = dynamic(() => import('./previews/EPUBPreview'), {
@@ -213,6 +214,8 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find README.md file to render
     const readmeFile = folderChildren.find(c => c.name.toLowerCase() === 'readme.md')
+
+    const descFile = folderChildren.find(c => c.name.endsWith('.description'))
     
     const videoExts = [
       ".mp4", ".mkv", ".webm"
@@ -380,18 +383,10 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
-        {readmeFile && videoFile && (
-          <>
-            <ReadMePreview file={readmeFile as OdFileObject} path={path} />
-            <FolderListDownloadButtons { ...folderProps } videoFile={videoFile} />
-          </>
-        )}
-
-        {videoFile && (
-          <div className="mt-4">
-            <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>
-          </div>
-        )}
+        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject}/>}
+        {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile} />}
+        {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
+        {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
 
         {!videoFile && (<FolderListLayout {...folderProps} />)}
 

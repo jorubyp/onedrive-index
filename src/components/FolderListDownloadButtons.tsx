@@ -83,11 +83,11 @@ const FolderListDownloadButtons = ({
   const { t } = useTranslation()
   
   let totalSize = 0
-  folderChildren.forEach((c: OdFolderChildren) => {
-    if (c.folder) return
-    totalSize += c.size
-    selected[c.id] = true
-  })
+  for (let i = 0; i < folderChildren.length; i++) {
+    if (folderChildren[i].folder) return
+    totalSize += folderChildren[i].size
+    selected[folderChildren[i].id] = true
+  }
 
   // Get item path from item name
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
@@ -96,6 +96,34 @@ const FolderListDownloadButtons = ({
   
   return (
     <div className="sticky bottom-0 left-0 right-0 z-10 rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
+      <div className="mb-2 flex flex-wrap justify-center gap-2">
+        {videoDetails &&
+          <DownloadButton
+            onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(videoFile.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
+            btnColor={videoDetails["color"]}
+            btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
+            btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
+            btnTitle={`Download ${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
+          />
+        }
+        <DownloadButton
+          onClickCallback={handleSelectedDownload}
+          btnColor="pink"
+          btnText={`All (${humanFileSize(totalSize)})`}
+          btnIcon="download"
+          btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
+        />
+        <DownloadButton
+          onClickCallback={async () => {
+            clipboard.copy(`${getBaseUrl()}/${await shorten(path)}`)
+            toast.success(t('Copied short link to clipboard.'))
+          }}
+          btnColor="teal"
+          btnText={t('Copy Link')}
+          btnIcon="copy"
+          btnTitle={t('Copy short link to the clipboard')}
+        />
+      </div>
       <div className="flex flex-wrap justify-center gap-2">
         {folderChildren.sort((a: OdFolderChildren, b: OdFolderChildren) => {
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
@@ -115,34 +143,6 @@ const FolderListDownloadButtons = ({
             />
           )
         })}
-      </div>
-      <div className="mt-2 flex flex-wrap justify-center gap-2">
-        {videoDetails &&
-          <DownloadButton
-            onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(videoFile.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
-            btnColor={videoDetails["color"]}
-            btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
-            btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
-            btnTitle={`Download ${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
-          />
-        }
-        <DownloadButton
-          onClickCallback={handleSelectedDownload}
-          btnColor="pink"
-          btnText={`All (${humanFileSize(totalSize)})`}
-          btnIcon="download"
-          btnTitle={t(`Download all (${humanFileSize(totalSize)})`)}
-        />
-        <DownloadButton
-          onClickCallback={async () => {
-            clipboard.copy(`${getBaseUrl()}/${await shorten(path)}`)
-            toast.success(t('Copied short link to clipboard.'))
-          }}
-          btnColor="teal"
-          btnText={t('Copy Link')}
-          btnIcon="copy"
-          btnTitle={t('Copy short link to the clipboard')}
-        />
       </div>
     </div>
   )
