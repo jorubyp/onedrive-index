@@ -17,6 +17,7 @@ import Breadcrumb from './Breadcrumb'
 
 const Navbar = () => {
   const router = useRouter()
+  const { asPath } = router
   const os = useDeviceOS()
 
   const [tokenPresent, setTokenPresent] = useState(false)
@@ -75,15 +76,15 @@ const Navbar = () => {
     const iconName = icon.substring(icon.indexOf('-') + 1).toLowerCase() as IconName;
     iconProps = { icon: [iconPrefix, iconName] };
   }
-  
+  console.log(asPath)
   return (
     <div className="sticky top-0 z-[100] border-b border-gray-900/10 bg-white bg-opacity-80 backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <Toaster />
 
       <SearchModal searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
-      <div className="flex-col md:flex-row mx-auto flex w-full items-center justify-between space-y-1 md:space-x-4 px-4 py-1">
-        <nav className="w-full md:w-fit flex items-center space-x-1 md:pr-4 sm:px-0 min-w-0">
+      <div className={`${asPath == '/' ? 'space-x-2 ' : 'flex-col md:flex-row space-y-1'}md:flex-row mx-auto flex w-full items-center justify-between md:space-x-4 px-4 py-1`}>
+        <nav className={`${asPath == '/' ? '' : 'w-full '}md:w-fit flex items-center space-x-1 md:pr-4 sm:px-0 min-w-0`}>
           <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white min-w-[20px] mr-1 md:mr-2 false">
             {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
             <IconComponent {...iconProps} />
@@ -91,7 +92,7 @@ const Navbar = () => {
           <Breadcrumb query={router.query}/>
         </nav>
 
-        <div className="pb-2 md:pb-0 flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial w-full md:w-min">
+        <div className={`${asPath == '/' ? 'ml-2' : 'pb-2 '}md:pb-0 flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial w-full md:w-min`}>
           <button
             className="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2.5 py-1.5 hover:opacity-80 dark:bg-gray-800 dark:text-white md:w-48"
             onClick={openSearchBox}

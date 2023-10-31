@@ -35,7 +35,7 @@ const DescriptionPreview = ({ file }) => {
 
   return (
     <PreviewContainer>
-      <span className="whitespace-pre-wrap p-0">{formattedContent}</span>
+      <span className="whitespace-pre-wrap break-words p-0">{formattedContent}</span>
     </PreviewContainer>
   )
 }
