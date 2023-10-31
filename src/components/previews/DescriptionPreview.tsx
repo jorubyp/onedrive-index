@@ -14,9 +14,7 @@ const DescriptionPreview = ({ file }) => {
   const parentPath = asPath
 
   const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${encodeURIComponent(file.name)}`, asPath)
-  console.log(`/api/raw/?path=${parentPath}/${file.name}`)
   if (error || validating || !content) {
-    console.log({ error, validating, content })
     return (<></>)
   }
 

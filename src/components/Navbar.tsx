@@ -76,7 +76,7 @@ const Navbar = () => {
     const iconName = icon.substring(icon.indexOf('-') + 1).toLowerCase() as IconName;
     iconProps = { icon: [iconPrefix, iconName] };
   }
-  console.log(asPath)
+  
   return (
     <div className="sticky top-0 z-[100] border-b border-gray-900/10 bg-white bg-opacity-80 backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <Toaster />
