@@ -6,7 +6,6 @@ import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
 import Loading from '../Loading'
-import DownloadButtonGroup from '../DownloadBtnGtoup'
 import { DownloadBtnContainer } from './Containers'
 import { getStoredToken } from '../../utils/protectedRouteHandler'
 
@@ -42,34 +41,29 @@ const EPUBPreview: FC<{ file: OdFileObject }> = ({ file }) => {
   }
 
   return (
-    <div>
-      <div
-        className="no-scrollbar flex w-full flex-col overflow-scroll rounded bg-white dark:bg-gray-900 md:p-3"
-        style={{ maxHeight: '90vh' }}
-      >
-        <div className="no-scrollbar w-full flex-1 overflow-scroll" ref={epubContainer} style={{ minHeight: '70vh' }}>
-          <div
-            style={{
-              position: 'absolute',
-              width: epubContainerWidth,
-              height: '70vh',
-            }}
-          >
-            <ReactReader
-              url={`/api/raw/?path=${asPath}${hashedToken ? '&odpt=' + hashedToken : ''}`}
-              getRendition={rendition => fixEpub(rendition)}
-              loadingView={<Loading loadingText={t('Loading EPUB ...')} />}
-              location={location}
-              locationChanged={onLocationChange}
-              epubInitOptions={{ openAs: 'epub' }}
-              epubOptions={{ flow: 'scrolled', allowPopups: true }}
-            />
-          </div>
+    <div
+      className="no-scrollbar flex w-full flex-col overflow-scroll rounded bg-white dark:bg-gray-900 md:p-3"
+      style={{ maxHeight: '90vh' }}
+    >
+      <div className="no-scrollbar w-full flex-1 overflow-scroll" ref={epubContainer} style={{ minHeight: '70vh' }}>
+        <div
+          style={{
+            position: 'absolute',
+            width: epubContainerWidth,
+            height: '70vh',
+          }}
+        >
+          <ReactReader
+            url={`/api/raw/?path=${asPath}${hashedToken ? '&odpt=' + hashedToken : ''}`}
+            getRendition={rendition => fixEpub(rendition)}
+            loadingView={<Loading loadingText={t('Loading EPUB ...')} />}
+            location={location}
+            locationChanged={onLocationChange}
+            epubInitOptions={{ openAs: 'epub' }}
+            epubOptions={{ flow: 'scrolled', allowPopups: true }}
+          />
         </div>
       </div>
-      <DownloadBtnContainer>
-        <DownloadButtonGroup />
-      </DownloadBtnContainer>
     </div>
   )
 }

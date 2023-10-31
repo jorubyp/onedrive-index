@@ -1,11 +1,7 @@
 import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
-import FourOhFour from '../FourOhFour'
-import Loading from '../Loading'
-import DownloadButtonGroup from '../DownloadBtnGtoup'
 import useFileContent from '../../utils/fetchOnMount'
-import { DownloadBtnContainer } from './Containers'
 import React from 'react'
 
 function PreviewContainer({ children }): JSX.Element {
@@ -38,11 +34,9 @@ const DescriptionPreview = ({ file }) => {
   if (formattedContent.length < 1) return (<></>)
 
   return (
-    <div>
-      <PreviewContainer>
-        <span className="whitespace-pre-wrap p-0">{formattedContent}</span>
-      </PreviewContainer>
-    </div>
+    <PreviewContainer>
+      <span className="whitespace-pre-wrap p-0">{formattedContent}</span>
+    </PreviewContainer>
   )
 }
 

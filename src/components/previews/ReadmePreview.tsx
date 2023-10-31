@@ -12,8 +12,7 @@ import 'katex/dist/katex.min.css'
 
 import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
-import Loading, { LoadingIcon } from '../Loading'
-import DownloadButtonGroup from '../DownloadBtnGtoup'
+import { LoadingIcon } from '../Loading'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
@@ -127,7 +126,7 @@ const MarkdownPreview: FC<{
             {
               content
                 .replace(/### `+\[20\d{6}\] /, '### ')
-                .replace(/\[.+\] \([^)]+\)`+\r/, '')
+                .replace(/\[[^\]]+\] \([^)]+\)`+\r/, '')
                 .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
                 .replace(/@[^#]+#\d+/, '')
             }

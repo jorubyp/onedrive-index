@@ -5,22 +5,20 @@ import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
 import axios from 'axios'
-import toast from 'react-hot-toast'
 import Plyr from 'plyr-react'
 import { useAsync } from 'react-async-hook'
-import { useClipboard } from 'use-clipboard-copy'
 
-import { getBaseUrl } from '../../utils/getBaseUrl'
 import { getExtension } from '../../utils/getFileIcon'
 import { getStoredToken } from '../../utils/protectedRouteHandler'
 
-import { DownloadButton } from '../DownloadBtnGtoup'
-import { DownloadBtnContainer, PreviewContainer } from './Containers'
 import FourOhFour from '../FourOhFour'
 import Loading from '../Loading'
-import CustomEmbedLinkMenu from '../CustomEmbedLinkMenu'
 
 import 'plyr-react/plyr.css'
+
+function PreviewContainer({ children }): JSX.Element {
+  return <div className="rounded-t bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
+}
 
 const VideoPlayer: FC<{
   videoName: string
@@ -74,20 +72,21 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
-  const { asPath } = useRouter()
+const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined}> = ({ file, thumbFile, subsFile }) => {
+  let { asPath } = useRouter()
+  let folderPath = asPath
+  asPath += `/${encodeURIComponent(file.name)}`
+  
   const hashedToken = getStoredToken(asPath)
-  const clipboard = useClipboard()
-
-  const [menuOpen, setMenuOpen] = useState(false)
   const { t } = useTranslation()
 
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
-  const thumbnail = `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const thumbnail = thumbFile
+    ? `/api/raw/?path=${`${folderPath}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    : `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
-  const vtt = `${asPath.substring(0, asPath.lastIndexOf('.'))}.vtt`
-  const subtitle = `/api/raw/?path=${vtt}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const subtitle = subsFile && `/api/raw/?path=${`${folderPath}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We also format the raw video file for the in-browser player as well as all other players
   const videoUrl = `/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
@@ -103,89 +102,25 @@ const VideoPreview: FC<{ file: OdFileObject }> = ({ file }) => {
     }
   }, [isFlv])
 
-  async function shorten(longPath: string): Promise<{ shortPath: string }> {
-    const response = await fetch("/api/shorten", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: longPath }),
-    });
-    const data = await response.json();
-    return data["short"]
-  }
-
   return (
-    <>
-      <CustomEmbedLinkMenu path={asPath} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
-      <PreviewContainer>
-        {error ? (
-          <FourOhFour errorMsg={error.message} />
-        ) : loading && isFlv ? (
-          <Loading loadingText={t('Loading FLV extension...')} />
-        ) : (
-          <VideoPlayer
-            videoName={file.name}
-            videoUrl={videoUrl}
-            width={file.video?.width}
-            height={file.video?.height}
-            thumbnail={thumbnail}
-            subtitle={subtitle}
-            isFlv={isFlv}
-            mpegts={mpegts}
-          />
-        )}
-      </PreviewContainer>
-
-      <DownloadBtnContainer>
-        <div className="flex flex-wrap justify-center gap-2">
-          <DownloadButton
-            onClickCallback={() => window.open(videoUrl)}
-            btnColor="blue"
-            btnText={t('Download')}
-            btnIcon="file-download"
-          />
-          <DownloadButton
-            onClickCallback={() => {
-              clipboard.copy(`${getBaseUrl()}/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`)
-              toast.success(t('Copied direct link to clipboard.'))
-            }}
-            btnColor="pink"
-            btnText={t('Copy direct link')}
-            btnIcon="copy"
-          />
-          <DownloadButton
-            onClickCallback={async () => {
-              clipboard.copy(`${getBaseUrl()}/${await shorten(asPath)}`)
-              toast.success(t('Copied direct link to clipboard.'))
-            }}
-            btnColor="teal"
-            btnText={t('Copy file permalink')}
-            btnIcon="copy"
-            btnTitle={t('Copy the permalink to the file to the clipboard')}
-          />
-
-          <DownloadButton
-            onClickCallback={() => window.open(`iina://weblink?url=${getBaseUrl()}${videoUrl}`)}
-            btnText="IINA"
-            btnImage="/players/iina.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`vlc://${getBaseUrl()}${videoUrl}`)}
-            btnText="VLC"
-            btnImage="/players/vlc.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`potplayer://${getBaseUrl()}${videoUrl}`)}
-            btnText="PotPlayer"
-            btnImage="/players/potplayer.png"
-          />
-          <DownloadButton
-            onClickCallback={() => window.open(`nplayer-http://${window?.location.hostname ?? ''}${videoUrl}`)}
-            btnText="nPlayer"
-            btnImage="/players/nplayer.png"
-          />
-        </div>
-      </DownloadBtnContainer>
-    </>
+    <PreviewContainer>
+      {error ? (
+        <FourOhFour errorMsg={error.message} />
+      ) : loading && isFlv ? (
+        <Loading loadingText={t('Loading FLV extension...')} />
+      ) : (
+        <VideoPlayer
+          videoName={file.name}
+          videoUrl={videoUrl}
+          width={file.video?.width}
+          height={file.video?.height}
+          thumbnail={thumbnail}
+          subtitle={subtitle ?? ''}
+          isFlv={isFlv}
+          mpegts={mpegts}
+        />
+      )}
+    </PreviewContainer>
   )
 }
 

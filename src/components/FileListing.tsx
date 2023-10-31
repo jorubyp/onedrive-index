@@ -5,14 +5,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import toast, { Toaster } from 'react-hot-toast'
 import emojiRegex from 'emoji-regex'
 
-import dynamic from 'next/dynamic'
 import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
-import useLocalStorage from '../utils/useLocalStorage'
-import { getPreviewType, preview } from '../utils/getPreviewType'
 import { useProtectedSWRInfinite } from '../utils/fetchWithSWR'
-import { getExtension, getRawExtension, getFileIcon } from '../utils/getFileIcon'
+import { getRawExtension, getFileIcon } from '../utils/getFileIcon'
 import { getStoredToken } from '../utils/protectedRouteHandler'
 import {
   DownloadingToast,
@@ -21,34 +18,18 @@ import {
   traverseFolder,
 } from './MultiFileDownloader'
 
-import { layouts } from './SwitchLayout'
 import Loading, { LoadingIcon } from './Loading'
 import FourOhFour from './FourOhFour'
 import Auth from './Auth'
-import TextPreview from './previews/TextPreview'
-import MarkdownPreview from './previews/MarkdownPreview'
-import CodePreview from './previews/CodePreview'
-import OfficePreview from './previews/OfficePreview'
-import AudioPreview from './previews/AudioPreview'
 import VideoPreview from './previews/VideoPreview'
-import PDFPreview from './previews/PDFPreview'
-import URLPreview from './previews/URLPreview'
-import ImagePreview from './previews/ImagePreview'
-import DefaultPreview from './previews/DefaultPreview'
 import { PreviewContainer } from './previews/Containers'
 
 import FolderListLayout from './FolderListLayout'
-import FolderGridLayout from './FolderGridLayout'
-import VideoPreviewFileListing from './previews/VideoPreviewFileListing'
 import React from 'react'
 import FolderListDownloadButtons from './FolderListDownloadButtons'
 import ReadmePreview from './previews/ReadmePreview'
 import DescriptionPreview from './previews/DescriptionPreview'
-
-// Disabling SSR for some previews
-const EPUBPreview = dynamic(() => import('./previews/EPUBPreview'), {
-  ssr: false,
-})
+import AudioPreview from './previews/AudioPreview'
 
 /**
  * Convert url query into path string
@@ -153,11 +134,15 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
-  return <VideoPreviewFileListing file={file} thumbFile={thumbFile} subsFile={subsFile}/>;
+const AudioPlayer = React.memo<{ file: OdFileObject }>(function AudioPlayer({ file, }) {
+  return <AudioPreview file={file}/>;
 });
 
-const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function VideoPlayer({ file, path }) {
+const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
+  return <VideoPreview file={file} thumbFile={thumbFile} subsFile={subsFile}/>;
+});
+
+const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function ReadMePreview({ file, path }) {
   return <ReadmePreview file={file} path={path} />;
 });
 
@@ -171,7 +156,6 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
   const router = useRouter()
   const hashedToken = getStoredToken(router.asPath)
-  const [layout, _] = useLocalStorage('preferredLayout', layouts[0])
 
   const { t } = useTranslation()
 
@@ -220,6 +204,9 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     const videoExts = [
       ".mp4", ".mkv", ".webm"
     ]
+    const audioExts = [
+      ".m4a", ".ogg", ".mp3"
+    ]
     const thumbExts = [
       ".jpg", ".png", ".webp"
     ]
@@ -229,6 +216,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     // Find video file to render
     const videoFile = folderChildren.find(c => videoExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
+    const audioFile = folderChildren.find(c => audioExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
     const thumbFile = folderChildren.find(c => thumbExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
     const subsFile = folderChildren.find(c => subsExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
 
@@ -388,7 +376,8 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         <Toaster />
 
         {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
-        {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
+        {!videoFile && audioFile && <AudioPlayer { ...folderProps } file={audioFile as OdFileObject} />}
+        {(videoFile || audioFile) && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
         {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
         {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
 
@@ -430,50 +419,6 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         )}
       </>
     )
-  }
-
-  if ('file' in responses[0] && responses.length === 1) {
-    const file = responses[0].file as OdFileObject
-    const previewType = getPreviewType(getExtension(file.name), { video: Boolean(file.video) })
-
-    if (previewType) {
-      switch (previewType) {
-        case preview.image:
-          return <ImagePreview file={file} />
-
-        case preview.text:
-          return <TextPreview file={file} />
-
-        case preview.code:
-          return <CodePreview file={file} />
-
-        case preview.markdown:
-          return <MarkdownPreview file={file} path={path} />
-
-        case preview.video:
-          return <VideoPreview file={file} />
-
-        case preview.audio:
-          return <AudioPreview file={file} />
-
-        case preview.pdf:
-          return <PDFPreview file={file} />
-
-        case preview.office:
-          return <OfficePreview file={file} />
-
-        case preview.epub:
-          return <EPUBPreview file={file} />
-
-        case preview.url:
-          return <URLPreview file={file} />
-
-        default:
-          return <DefaultPreview file={file} />
-      }
-    } else {
-      return <DefaultPreview file={file} />
-    }
   }
 
   return (

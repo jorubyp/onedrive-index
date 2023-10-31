@@ -2,12 +2,9 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
-import siteConfig from '../../config/site.config'
 import Navbar from '../components/Navbar'
 import FileListing from '../components/FileListing'
 import Footer from '../components/Footer'
-import Breadcrumb from '../components/Breadcrumb'
-import SwitchLayout from '../components/SwitchLayout'
 
 const escape_chars = [
   ["<", "＜"],
@@ -33,7 +30,7 @@ export default function Folders() {
   const formattedTitle = titleUnescape(title)
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900 min-w-[600px]">
       <Head>
         <title>{formattedTitle}</title>
       </Head>

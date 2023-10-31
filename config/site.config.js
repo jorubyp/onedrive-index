@@ -10,7 +10,8 @@ module.exports = {
   // If the FontAwesomIcon you choose does not display properly, you may need to import it in `src/pages/_app.tsx`.
   // However, the browser's tab bar icon is STILL determined by /public/favicon.ico
   icon: process.env.NEXT_PUBLIC_ICON || '64r.png', // or icon: '/icons/128.png', to use a image.
-
+  
+  baseDirectory: process.env.NEXT_PUBLIC_BASE_DIR || '/',
   // Prefix for KV Storage.
   // You can put this in Vercel's environment variable 'KV_PREFIX' without any modification here.
   kvPrefix: process.env.KV_PREFIX || '',

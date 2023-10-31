@@ -10,8 +10,7 @@ import useFileContent from '../../utils/fetchOnMount'
 import { getLanguageByFileName } from '../../utils/getPreviewType'
 import FourOhFour from '../FourOhFour'
 import Loading from '../Loading'
-import DownloadButtonGroup from '../DownloadBtnGtoup'
-import { DownloadBtnContainer, PreviewContainer } from './Containers'
+import { PreviewContainer } from './Containers'
 
 const CodePreview: FC<{ file: any }> = ({ file }) => {
   const { asPath } = useRouter()
@@ -29,31 +28,21 @@ const CodePreview: FC<{ file: any }> = ({ file }) => {
   }
   if (validating) {
     return (
-      <>
-        <PreviewContainer>
-          <Loading loadingText={t('Loading file content...')} />
-        </PreviewContainer>
-        <DownloadBtnContainer>
-          <DownloadButtonGroup />
-        </DownloadBtnContainer>
-      </>
+      <PreviewContainer>
+        <Loading loadingText={t('Loading file content...')} />
+      </PreviewContainer>
     )
   }
 
   return (
-    <>
-      <PreviewContainer>
-        <SyntaxHighlighter
-          language={getLanguageByFileName(file.name)}
-          style={theme === 'dark' ? tomorrowNightEighties : tomorrow}
-        >
-          {content}
-        </SyntaxHighlighter>
-      </PreviewContainer>
-      <DownloadBtnContainer>
-        <DownloadButtonGroup />
-      </DownloadBtnContainer>
-    </>
+    <PreviewContainer>
+      <SyntaxHighlighter
+        language={getLanguageByFileName(file.name)}
+        style={theme === 'dark' ? tomorrowNightEighties : tomorrow}
+      >
+        {content}
+      </SyntaxHighlighter>
+    </PreviewContainer>
   )
 }
 

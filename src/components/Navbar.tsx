@@ -12,7 +12,6 @@ import { useTranslation } from 'next-i18next'
 
 import siteConfig from '../../config/site.config'
 import SearchModal from './SearchModal'
-import SwitchLang from './SwitchLang'
 import useDeviceOS from '../utils/useDeviceOS'
 import Breadcrumb from './Breadcrumb'
 
@@ -84,8 +83,8 @@ const Navbar = () => {
       <SearchModal searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
       <div className="mx-auto flex w-full items-center justify-between space-x-4 px-4 py-1">
-        <nav className="flex items-center justify-between space-x-1 px-4 sm:px-0 sm:pl-1 min-w-0">
-          <Link href="/" passHref className="flex-shrink-0 flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white md:p-2">
+        <nav className="flex items-center justify-between space-x-1 pr-4 sm:px-0 min-w-0">
+          <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white min-w-[20px] mr-1 md:mr-2 false">
             {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
             <IconComponent {...iconProps} />
           </Link>

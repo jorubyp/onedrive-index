@@ -2,15 +2,8 @@ import type { OdFolderChildren } from '../types'
 
 import Link from 'next/link'
 import { FC } from 'react'
-import { useClipboard } from 'use-clipboard-copy'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useTranslation } from 'next-i18next'
 
-import { getBaseUrl } from '../utils/getBaseUrl'
-import { humanFileSize, formatModifiedDateTime } from '../utils/fileDetails'
-
-import { Downloading, Checkbox, ChildIcon, ChildName } from './FileListing'
-import { getStoredToken } from '../utils/protectedRouteHandler'
+import { ChildIcon, ChildName } from './FileListing'
 
 const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c }) => {
   return (
@@ -25,55 +18,25 @@ const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c })
   )
 }
 
-async function shorten(longPath: string): Promise<string> {
-  const response = await fetch("/api/shorten", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url: longPath }),
-  });
-  const data = await response.json();
-  return data["short"]
-}
-
 const FolderListLayout = ({
   path,
   folderChildren,
-  selected,
-  toggleItemSelected,
-  totalSelected,
-  toggleTotalSelected,
-  totalGenerating,
-  handleSelectedDownload,
-  folderGenerating,
-  handleSelectedPermalink,
-  handleFolderDownload,
-  toast,
-}) => {
-  const clipboard = useClipboard()
-  const hashedToken = getStoredToken(path)
-
-  const { t } = useTranslation()
-
-  // Get item path from item name
-  const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
-
-  return (
-    <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
-      {folderChildren.map((c: OdFolderChildren) => (
-        <div
-          className="transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850"
-          key={c.id}
+}) => (
+  <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
+    {folderChildren.map((c: OdFolderChildren) => (
+      <div
+        className="transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850"
+        key={c.id}
+      >
+        <Link
+          href={`${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}
+          passHref
         >
-          <Link
-            href={`${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}
-            passHref
-          >
-            <FileListItem fileContent={c} />
-          </Link>
-        </div>
-      ))}
-    </div>
-  )
-}
+          <FileListItem fileContent={c} />
+        </Link>
+      </div>
+    ))}
+  </div>
+)
 
 export default FolderListLayout
