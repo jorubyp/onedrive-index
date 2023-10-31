@@ -33,6 +33,8 @@ const DescriptionPreview = ({ file }) => {
     contentLines = contentLines.slice(2)
   }
 
+  if (contentLines.length < 1) return (<></>)
+
   const formattedContent = contentLines.join('\n')
 
   return (

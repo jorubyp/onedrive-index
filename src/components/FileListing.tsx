@@ -153,8 +153,8 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
-  return <VideoPreviewFileListing file={file} thumbFile={thumbFile} subsFile={subsFile as OdFileObject}/>;
+const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
+  return <VideoPreviewFileListing file={file} thumbFile={thumbFile} subsFile={subsFile}/>;
 });
 
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function VideoPlayer({ file, path }) {
@@ -387,7 +387,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
-        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject} subsFile={subsFile as OdFileObject | undefined} />}
+        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
         {videoFile && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
         {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
         {descFile && <DescriptionPreview file={descFile as OdFileObject} />}

@@ -77,7 +77,7 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject, subsFile: OdFileObject | undefined}> = ({ file, thumbFile, subsFile }) => {
+const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined}> = ({ file, thumbFile, subsFile }) => {
   let { asPath } = useRouter()
   let folderPath = asPath
   asPath += `/${encodeURIComponent(file.name)}`
