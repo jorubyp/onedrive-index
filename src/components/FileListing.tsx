@@ -77,8 +77,8 @@ const titleUnescape = (title: string) => {
 
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = formatChildName(name)
-  const videoIdRegexp = /.*\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
-  const { date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
+  const { path, date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
   if (!date || !title || !videoId) {
     return (
       <span className="truncate">
@@ -88,11 +88,12 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
   }
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
-  let dateStr = `${year}/${month}/${day} `
-  if (!title.startsWith('【')) dateStr += ' '
+  let prefix = path ? path : ''
+  prefix += path ? `[${year}${month}${day}] ` : `${year}/${month}/${day} `
+  if (!path && !title.startsWith('【')) prefix += ' '
   return (
     <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={` (${videoId})`}>
-      {dateStr}{titleUnescape(title)}
+      {prefix}{titleUnescape(title)}
     </span>
   )
 }
