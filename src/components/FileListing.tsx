@@ -9,7 +9,7 @@ import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
 import { useProtectedSWRInfinite } from '../utils/fetchWithSWR'
-import { getRawExtension, getFileIcon } from '../utils/getFileIcon'
+import { getRawExtension, getFileIcon, getExtension } from '../utils/getFileIcon'
 import { getStoredToken } from '../utils/protectedRouteHandler'
 import {
   DownloadingToast,
@@ -58,13 +58,22 @@ const formatChildName = (name: string) => {
 }
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = formatChildName(name)
-  const videoIdRegexp = /.*\[\d{8}\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
-  const { videoId } = original.match(videoIdRegexp)?.groups || {}
-  const extension = videoId && folder ? ` (${videoId})` : folder ? '' : getRawExtension(original)
-  const prename = extension.length < 1 ? original : original.substring(0, original.length - extension.length)
+  const videoIdRegexp = /.*\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
+  const { date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
+  if (!date || !title || !videoId) {
+    return (
+      <span className="truncate">
+        {original}
+      </span>
+    )
+  }
+  const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
+  const { year, month, day } = date.match(ymdRegexp)?.groups || {}
+  let dateStr = `${year}/${month}/${day} `
+  if (!title.startsWith('【')) dateStr += ' '
   return (
-    <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={extension}>
-      {prename}
+    <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={` (${videoId})`}>
+      {dateStr}{title}
     </span>
   )
 }
@@ -202,29 +211,33 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     const descFile = folderChildren.find(c => c.name.endsWith('.description'))
     
     const videoExts = [
-      ".mp4", ".mkv", ".webm"
+      "mp4", "mkv", "webm"
     ]
     const audioExts = [
-      ".m4a", ".ogg", ".mp3"
+      "m4a", "ogg", "mp3"
     ]
     const thumbExts = [
-      ".jpg", ".png", ".webp"
+      "jpg", "png", "webp"
     ]
     const subsExts = [
-      ".vtt", ".srt", ".ass"
+      "vtt", "srt", "ass"
     ]
 
-    // Find video file to render
-    const videoFile = folderChildren.find(c => videoExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
-    const audioFile = folderChildren.find(c => audioExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
-    const thumbFile = folderChildren.find(c => thumbExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
-    const subsFile = folderChildren.find(c => subsExts.includes(c.name.substring(c.name.lastIndexOf('.')).toLowerCase()))
+    // Find files to use
+    const videoFile = folderChildren.find(c => videoExts.includes(getExtension(c.name)))
+    const audioFile = folderChildren.find(c => audioExts.includes(getExtension(c.name)))
+    const thumbFile = folderChildren.find(c => thumbExts.includes(getExtension(c.name)))
+    const subsFile = folderChildren.find(c => subsExts.includes(getExtension(c.name)))
 
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
 
+    // If all the files start with dates, sort them chronologically descencding
+    const shouldReverse = folderChildren.every(child => child.name.match(/^\[\d{8}\] .+/))
+    if (shouldReverse) folderChildren.reverse()
+
     // Filtered file list helper
-    const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password' && c.name.toLowerCase() !== 'readme.md')
+    const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password')
 
     // File selection
     const genTotalSelected = (selected: { [key: string]: boolean }) => {

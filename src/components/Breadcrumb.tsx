@@ -3,6 +3,7 @@ import type { ParsedUrlQuery } from 'querystring'
 import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useTranslation } from 'next-i18next'
+import { ChildName } from './FileListing'
 
 const HomeCrumb = () => {
   const { t } = useTranslation()
@@ -27,12 +28,8 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
             .slice(0)
             .reverse()
             .map((p: string, i: number) => {
-              const videoIdRegexp = /^\[(?<date>\d{8})\] .+ \[.+\] \((?<videoId>[^\)]+)\)$/
-              const { date, videoId } = p.match(videoIdRegexp)?.groups || {}
-              const tail = date && videoId ? ` (${videoId})` : undefined
-              if (date && videoId) p = p.substring(0, p.lastIndexOf(` (${videoId})`));
               return (
-                <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 min-w-[50px] '}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
+                <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 min-w-[50px] '}truncate`}>
                   {path.length - 1 !== i && <FontAwesomeIcon className="h-3 w-3 mr-1 md:mr-3 " icon="angle-right" />}
                   <Link
                     href={`/${path
@@ -44,7 +41,7 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
                       i == 0 && 'pointer-events-none opacity-80'
                     }`}
                   >
-                    {p}
+                    <ChildName name={p} folder={true}/>
                   </Link>
                 </li>
               )
