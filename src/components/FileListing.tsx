@@ -56,6 +56,25 @@ const formatChildName = (name: string) => {
   const { render, emoji } = renderEmoji(name)
   return render ? name.replace(emoji ? emoji[0] : '', '').trim() : name
 }
+
+const escape_chars = [
+  ["<", "＜"],
+  [">", "＞"],
+  [":", "："],
+  ['"', '″'],
+  ["/", "⧸"],
+  ["\\", "⧹"],
+  ["|", "｜"],
+  ["?", "？"],
+  ["*", "＊"],
+]
+
+const titleUnescape = (title: string) => {
+  for (const [ to_char, from_char] of escape_chars)
+    title = title.replaceAll(from_char, to_char)
+  return title
+}
+
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = formatChildName(name)
   const videoIdRegexp = /.*\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
@@ -73,7 +92,7 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
   if (!title.startsWith('【')) dateStr += ' '
   return (
     <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={` (${videoId})`}>
-      {dateStr}{title}
+      {dateStr}{titleUnescape(title)}
     </span>
   )
 }
