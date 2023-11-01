@@ -52,10 +52,6 @@ const renderEmoji = (name: string) => {
   const emoji = emojiRegex().exec(name)
   return { render: emoji && !emoji.index, emoji }
 }
-const formatChildName = (name: string) => {
-  const { render, emoji } = renderEmoji(name)
-  return render ? name.replace(emoji ? emoji[0] : '', '').trim() : name
-}
 
 const escape_chars = [
   ["<", "＜"],
@@ -75,8 +71,13 @@ const titleUnescape = (title: string) => {
   return title
 }
 
+const formatChildName = (name: string) => {
+  const { render, emoji } = renderEmoji(name)
+  return render ? name.replace(emoji ? emoji[0] : '', '').trim() : name
+}
+
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
-  const original = formatChildName(name)
+  const original = titleUnescape(formatChildName(name))
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
   const { path, date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
   if (!date || !title || !videoId) {
