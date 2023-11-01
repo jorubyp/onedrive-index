@@ -83,8 +83,8 @@ const Navbar = () => {
 
       <SearchModal searchOpen={searchOpen} setSearchOpen={setSearchOpen} />
 
-      <div className={`${asPath == '/' ? 'space-x-2 ' : 'flex-col md:flex-row space-y-1'}md:flex-row mx-auto flex w-full items-center justify-between md:space-x-4 px-4 py-1`}>
-        <nav className={`${asPath == '/' ? '' : 'w-full '}md:w-fit flex items-center space-x-1 md:pr-4 sm:px-0 min-w-0`}>
+      <div className={`${asPath.split('/').length < 5 ? 'space-x-2 ' : 'flex-col md:flex-row space-y-1'}md:flex-row mx-auto flex w-full items-center justify-between md:space-x-4 px-4 py-1`}>
+        <nav className={`${asPath.split('/').length < 5 ? '' : 'w-full '}md:w-fit flex items-center space-x-1 md:pr-4 sm:px-0 min-w-0`}>
           <Link href="/" passHref className="flex items-center space-x-2 py-2 hover:opacity-80 dark:text-white min-w-max mr-1 md:mr-3 false">
             {/*<Image src={siteConfig.icon} alt="icon" width="25" height="25" priority />*/}
             <IconComponent {...iconProps} />
@@ -92,7 +92,7 @@ const Navbar = () => {
           <Breadcrumb query={router.query}/>
         </nav>
 
-        <div className={`${asPath == '/' ? 'ml-2' : 'pb-2 '}md:pb-0 flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial w-full md:w-min`}>
+        <div className={`${asPath.split('/').length < 5 ? 'ml-2' : 'pb-2 '}md:pb-0 flex flex-1 items-center space-x-4 text-gray-700 md:flex-initial w-full md:w-min`}>
           <button
             className="flex flex-1 items-center justify-between rounded-lg bg-gray-100 px-2.5 py-1.5 hover:opacity-80 dark:bg-gray-800 dark:text-white md:w-48"
             onClick={openSearchBox}
