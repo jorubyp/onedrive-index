@@ -100,7 +100,7 @@ const GetFileDetails = (file: OdFileObject) => {
     }
   }
   if (fileType === '') {
-    if (file.name.endsWith('.info.json')) {
+    if (file.name.endsWith('.info.json') || file.name.endsWith('.info')) {
       fileType = "Info"
     }
     if (file.name.includes('.live_chat.json')) {
@@ -154,13 +154,34 @@ const FolderListDownloadButtons: FC<{
   const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
   
   const videoDetails = GetFileDetails(videoFile)
-  
+
+  const downloadFile = async (file: OdFileObject) => {
+    const url = `${getBaseUrl()}/api/raw/?path=${path}/${encodeURIComponent(file.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    console.log(url)
+    const tmpLink = document.createElement("a")
+    tmpLink.style.display = 'none'
+    document.body.appendChild(tmpLink)
+    tmpLink.setAttribute( 'href', url );
+    if (file.name.endsWith('.info')) {
+        const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
+        const fileName: string = file.name + '.json'
+        const objectUrl: string = URL.createObjectURL(blob);
+        tmpLink.href = objectUrl;
+        tmpLink.download = fileName;
+        tmpLink.click();        
+        URL.revokeObjectURL(objectUrl);
+    } else {
+      tmpLink.click();
+    }
+    document.body.removeChild(tmpLink)
+  }
+
   return (
     <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="mb-2 flex flex-wrap justify-center gap-2">
         {videoDetails &&
           <DownloadButton
-            onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(videoFile.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
+            onClickCallback={() => downloadFile(videoFile as OdFileObject)}
             btnColor={videoDetails["color"]}
             btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
             btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
@@ -201,7 +222,7 @@ const FolderListDownloadButtons: FC<{
           const fileDetails = GetFileDetails(c as OdFileObject)
           if (fileDetails) return (
             <DownloadButton
-              onClickCallback={() => window.open(`/api/raw/?path=${getItemPath(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`)}
+              onClickCallback={() => downloadFile(c as OdFileObject)}
               btnColor={fileDetails["color"]}
               btnText={`${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
               btnIcon={getFileIcon(c.name, { video: Boolean(c.video)})}
