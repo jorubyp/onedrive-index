@@ -29,7 +29,7 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
             .reverse()
             .map((p: string, i: number) => {
               return (
-                <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 min-w-[50px] '}truncate`}>
+                <li key={i} className={`${i == 0 ? '' : 'md:flex-shrink-0 min-w-[50px] '}truncate md:min-w-0`}>
                   {path.length - 1 !== i && <FontAwesomeIcon className="h-3 w-3 mr-1 md:mr-3 " icon="angle-right" />}
                   <Link
                     href={`/${path
