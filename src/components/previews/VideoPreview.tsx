@@ -80,10 +80,16 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   const hashedToken = getStoredToken(asPath)
   const { t } = useTranslation()
 
+  const defaultThumb = `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
   const thumbnail = thumbFile
     ? `/api/raw/?path=${`${folderPath}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
-    : `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    : defaultThumb
+
+  const { result: thumbBlob = defaultThumb } = useAsync(async () => {
+    const blob: Blob = new Blob([await fetch(thumbnail).then(r => r.blob())], {type: 'application/json'});
+    return URL.createObjectURL(blob)
+  }, [ thumbnail ])
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
   const subtitle = subsFile && `/api/raw/?path=${`${folderPath}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
@@ -114,7 +120,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
           videoUrl={videoUrl}
           width={file.video?.width}
           height={file.video?.height}
-          thumbnail={thumbnail}
+          thumbnail={thumbBlob}
           subtitle={subtitle ?? ''}
           isFlv={isFlv}
           mpegts={mpegts}
