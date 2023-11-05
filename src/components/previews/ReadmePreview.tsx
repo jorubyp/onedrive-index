@@ -108,7 +108,36 @@ const MarkdownPreview: FC<{
     )
   }
 
-  return (
+  let contentLines = content.split('\r\n')
+  const titleLineRegexp = /### ``\[(?<date>\d{8})\] (?<title>.+) \[(?<channel>.+)\] \((?<videoId>[^\)]+)\)``/
+  const { date, title, channel, videoId } = contentLines[0].match(titleLineRegexp)?.groups || {}
+  if (title) {
+    return (
+      <PreviewContainer>
+        <div className="markdown-body">
+          <h3>{title}</h3>
+          {/* Using rehypeRaw to render HTML inside Markdown is potentially dangerous, use under safe environments. (#18) */}
+          <ReactMarkdown
+            // @ts-ignore
+            remarkPlugins={[remarkGfm, remarkMath]}
+            // The type error is introduced by caniuse-lite upgrade.
+            // Since type errors occur often in remark toolchain and the use is so common,
+            // ignoring it shoudld be safe enough.
+            // @ts-ignore
+            rehypePlugins={[rehypeKatex, rehypeRaw]}
+            components={customRenderer}
+          >
+            {
+              contentLines.slice(1).join('\r\n')
+                .replace(/\[[^\]]+\] \([^)]+\)`+\r/, '')
+                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
+                .replace(/@[^#]+#\d+/, '')
+            }
+          </ReactMarkdown>
+        </div>
+      </PreviewContainer>
+    )
+  } else return (
     <div>
       <PreviewContainer>
         <div className="markdown-body">
