@@ -10,7 +10,7 @@ import { getBaseUrl } from '../utils/getBaseUrl'
 import { humanFileSize } from '../utils/fileDetails'
 
 import { getStoredToken } from '../utils/protectedRouteHandler'
-import { getFileIcon } from '../utils/getFileIcon'
+import { getExtension, getFileIcon } from '../utils/getFileIcon'
 import { IconProp } from '@fortawesome/fontawesome-svg-core'
 
 const btnStyleMap = (btnColor?: string) => {
@@ -84,15 +84,17 @@ const fileTypeColors = {
   "Live Chat": "yellow",
 }
 
+const types = {
+  Video: [".mp4",".mkv"],
+  Audio: [".m4a",".mp3",".ogg"],
+  Thumbnail: [".jpg",".png",".webp"],
+  Description: [".description"]
+}
+
 const GetFileDetails = (file: OdFileObject) => {
-  const ext = file.name.substring(file.name.lastIndexOf('.'))
+  const fname = file.name.substring(0, file.name.lastIndexOf('.'))
+  let ext = file.name.substring(file.name.lastIndexOf('.'))
   let fileType = ''
-  const types = {
-    Video: [".mp4",".mkv"],
-    Audio: [".m4a",".mp3",".ogg"],
-    Thumbnail: [".jpg",".png",".webp"],
-    Description: [".description"]
-  }
   for (const type in types) {
     if (types[type].includes(ext)) {
       fileType = type
@@ -102,6 +104,7 @@ const GetFileDetails = (file: OdFileObject) => {
   if (fileType === '') {
     if (file.name.endsWith('.info.json') || file.name.endsWith('.info')) {
       fileType = "Info"
+      ext = '.info.json'
     }
     if (file.name.includes('.live_chat.json')) {
       fileType = "Live Chat"
@@ -113,7 +116,7 @@ const GetFileDetails = (file: OdFileObject) => {
     //if (['Video', 'Audio'].includes(fileType)) {
     //  fileType += ` (${humanFileSize(file.size)})`
     //}
-    return { fileType, color, index }
+    return { fileType, color, index, fname, ext }
   }
 }
 
@@ -134,7 +137,6 @@ const FolderListDownloadButtons: FC<{
   path,
   folderChildren,
   selected,
-  handleSelectedDownload,
   toast,
   videoFile,
 }) => {
@@ -155,33 +157,60 @@ const FolderListDownloadButtons: FC<{
   
   const videoDetails = GetFileDetails(videoFile)
 
-  const downloadFile = async (file: OdFileObject) => {
-    const url = `${getBaseUrl()}/api/raw/?path=${path}/${encodeURIComponent(file.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`
-    console.log(url)
+  const downloadFiles = async (files: FilePair[]) => {
     const tmpLink = document.createElement("a")
     tmpLink.style.display = 'none'
     document.body.appendChild(tmpLink)
-    tmpLink.setAttribute( 'href', url );
-    if (file.name.endsWith('.info')) {
-        const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
-        const fileName: string = file.name + '.json'
-        const objectUrl: string = URL.createObjectURL(blob);
-        tmpLink.href = objectUrl;
-        tmpLink.download = fileName;
-        tmpLink.click();        
-        URL.revokeObjectURL(objectUrl);
-    } else {
-      tmpLink.click();
+    for(const { file, details } of files) {
+      if (details) {
+        const filepath = `${path}/${encodeURIComponent(file.name)}`
+        const url = `${getBaseUrl()}/api/raw/?path=${filepath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+        tmpLink.setAttribute( 'href', url );
+        tmpLink.download = details.fname + details.ext
+        if (details.fileType === "Info") {
+          const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
+          const objectUrl: string = URL.createObjectURL(blob);
+          tmpLink.href = objectUrl;
+          tmpLink.click();        
+          URL.revokeObjectURL(objectUrl);
+        } else {
+          tmpLink.click();
+        }
+      }
     }
     document.body.removeChild(tmpLink)
   }
+
+  type FilePair = {
+    file: OdFileObject,
+    details: {
+      fileType: string,
+      color: string,
+      index: number,
+      ext: string,
+      fname: string
+    } | undefined
+  }
+
+  const videoPair = {
+    file: videoFile,
+    details: videoDetails
+  }
+
+  const subFiles = folderChildren.filter(c => c.id !== (videoFile as OdFileObject).id)
+    .map(c => ({
+      file: c as OdFileObject,
+      details: GetFileDetails(c as OdFileObject)
+    } as FilePair))
+
+  const allFiles = [videoPair, ...subFiles]
 
   return (
     <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="mb-2 flex flex-wrap justify-center gap-2">
         {videoDetails &&
           <DownloadButton
-            onClickCallback={() => downloadFile(videoFile as OdFileObject)}
+            onClickCallback={() => downloadFiles([ videoPair ])}
             btnColor={videoDetails["color"]}
             btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
             btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
@@ -189,7 +218,7 @@ const FolderListDownloadButtons: FC<{
           />
         }
         <DownloadButton
-          onClickCallback={handleSelectedDownload}
+          onClickCallback={() => downloadFiles(allFiles)}
           btnColor="pink"
           btnText={`All (${humanFileSize(totalSize)})`}
           btnIcon="download"
@@ -212,21 +241,20 @@ const FolderListDownloadButtons: FC<{
         />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        {folderChildren.sort((a: OdFolderChildren, b: OdFolderChildren) => {
+        {subFiles.sort(({ file: a }, { file: b }) => {
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
           const bdet = GetFileDetails(b as OdFileObject) || { index: 99 }
           return adet["index"] > bdet["index"] ? 0 : 1
         })
-        .filter((c: OdFolderChildren) => c.id !== (videoFile as OdFileObject).id)
-        .map((c: OdFolderChildren) => {
-          const fileDetails = GetFileDetails(c as OdFileObject)
-          if (fileDetails) return (
+        .map(({ file, details }, i) => {
+          if (details) return (
             <DownloadButton
-              onClickCallback={() => downloadFile(c as OdFileObject)}
-              btnColor={fileDetails["color"]}
-              btnText={`${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
-              btnIcon={getFileIcon(c.name, { video: Boolean(c.video)})}
-              btnTitle={`Download ${fileDetails["fileType"]} (${humanFileSize(c.size)})`}
+              key={i}
+              onClickCallback={() => downloadFiles([{ file, details }])}
+              btnColor={details.color}
+              btnText={`${details.fileType} (${humanFileSize(file.size)})`}
+              btnIcon={getFileIcon(file.name, { video: Boolean(file.video)})}
+              btnTitle={`Download ${details.fileType} (${humanFileSize(file.size)})`}
             />
           )
         })}
