@@ -115,7 +115,8 @@ const MarkdownPreview: FC<{
     return (
       <PreviewContainer>
         <div className="markdown-body">
-          <h3>{title}</h3>
+          <div className="font-bold mb-1 text-xl">{title}</div>
+          <div className="mb-4"><span className="font-bold">{channel}</span></div>
           {/* Using rehypeRaw to render HTML inside Markdown is potentially dangerous, use under safe environments. (#18) */}
           <ReactMarkdown
             // @ts-ignore
