@@ -73,6 +73,7 @@ const extensions = {
   rs: icons.code,
   vue: icons.code,
   json: icons.code,
+  info: icons.code,
   yml: icons.code,
   yaml: icons.code,
   toml: icons.code,
@@ -83,6 +84,7 @@ const extensions = {
   srt: icons.text,
   log: icons.text,
   diff: icons.text,
+  description: icons.text,
 
   md: icons.markdown,
 
