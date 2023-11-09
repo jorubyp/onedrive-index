@@ -30,11 +30,19 @@ module.exports = {
       colors: {
         gray: {
           850: '#222226'
-        }
+        },
+        new: '#53401c'
       },
       animation: {
         'spin-slow': 'spin 5s linear infinite',
-      }
+        'new-flash': 'newFlash 2s ease-in-out',
+      },
+      keyframes: theme => ({
+        newFlash: {
+          '0%': { backgroundColor: theme('colors.new') },
+          '100%': { backgroundColor: theme('colors.transparent') },
+        },
+      }),
     }
   },
   plugins: [

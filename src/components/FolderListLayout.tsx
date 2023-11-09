@@ -21,11 +21,12 @@ const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c })
 const FolderListLayout = ({
   path,
   folderChildren,
+  videoList
 }) => (
   <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
-    {folderChildren.map((c: OdFolderChildren) => (
+    {folderChildren.map((c: OdFolderChildren, i) => (
       <div
-        className="transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850"
+        className={`transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850${videoList && i === 0 ? ' animate-new-flash rounded-t' : ''}`}
         key={c.id}
       >
         <Link

@@ -254,8 +254,8 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
 
     // If all the files start with dates, sort them chronologically descencding
-    const shouldReverse = folderChildren.every(child => child.name.match(/^\[\d{8}\] .+/))
-    if (shouldReverse) folderChildren.reverse()
+    const videoList = folderChildren.every(child => child.name.match(/^\[\d{8}\] .+/))
+    if (videoList) folderChildren.reverse()
 
     // Filtered file list helper
     const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password')
@@ -415,7 +415,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
         {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
 
-        {!videoFile && (<FolderListLayout {...folderProps} />)}
+        {!videoFile && (<FolderListLayout {...folderProps} videoList={videoList}/>)}
 
         {(!videoFile && !onlyOnePage) && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
