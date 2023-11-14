@@ -76,17 +76,40 @@ const formatChildName = (name: string) => {
   return render ? name.replace(emoji ? emoji[0] : '', '').trim() : name
 }
 
+const splitChannelFromTitle = (fileName: string) => {
+  if (fileName[fileName.length - 1] !== ']') return
+  let start, end, open = 0
+  const arr = fileName.split('')
+  for (let i = arr.length - 1; i > -1; i--) {
+    if (arr[i] === '[' && open === 1) {
+      start = i + 1
+      break
+    }
+    if (arr[i] === ']') {
+      if (open === 0) {
+        end = i
+      }
+      open += 1
+    }
+  }
+  if (start && end) return {
+    title: fileName.substring(0, start - 1),
+    channel: fileName.substring(start, end)
+  }
+}
+
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = titleUnescape(formatChildName(name))
-  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+) \[.+\] \((?<videoId>[^\)]+)\)$/
-  const { path, date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
-  if (!date || !title || !videoId) {
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const { path, date, titlechannel, videoId } = original.match(videoIdRegexp)?.groups || {}
+  if (!date || !titlechannel || !videoId) {
     return (
       <span className="truncate">
         {original}
       </span>
     )
   }
+  const { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
   let prefix = path ? path : ''
