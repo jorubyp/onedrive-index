@@ -121,7 +121,7 @@ const GetFileDetails = (file: OdFileObject) => {
 }
 
 const shorten = (longPath: string) => {
-  const videoIdRegexp = /.+ \[.+\] \((?<videoId>[^)]+)\)$/
+  const videoIdRegexp = /.+\((?<videoId>[^)]+)\)$/
   const { videoId } = decodeURIComponent(longPath).match(videoIdRegexp)?.groups || {}
   return videoId
 }

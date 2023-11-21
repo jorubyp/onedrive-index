@@ -16,8 +16,18 @@ function mapAbsolutePath(path: string): string {
     : ''
 }
 
+function sanitiseQuery(query: string): string {
+  const sanitisedQuery = decodeURIComponent(query)
+    .replace(/'/g, "''")
+    .replace('<', ' &lt; ')
+    .replace('>', ' &gt; ')
+    .replace('?', ' ')
+    .replace('/', ' ')
+  return sanitisedQuery
+}
+
 const getLongPath = async (url: URL, q: string) => {
-  const data = await (await fetch(`${url.origin}/api/search/?q=${q}`)).json() as OdSearchResult
+  const data = await (await fetch(`${url.origin}/api/search/?q=${encodeURIComponent(q)}`)).json() as OdSearchResult
   const folder = data.find(item => item.folder && item.name.includes(`(${q})`))
   if (folder) {
     const result = await (await fetch(`${url.origin}/api/item/?id=${folder.id}`)).json() as OdSearchResult
@@ -26,11 +36,19 @@ const getLongPath = async (url: URL, q: string) => {
   return
 }
 
+const excluded = [
+  'api',
+  'image',
+  'icons',
+  'favicon.ico',
+  '_next'
+]
+
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url)
   const paths = url.pathname.split('/').filter(s => s !== "")
-  if (paths.length > 1) return NextResponse.next()
-  const longPath = await getLongPath(url, paths[0])
+  if (paths.length > 1 || paths[0] in excluded) return NextResponse.next()
+  const longPath = await getLongPath(url, sanitiseQuery(paths[0]))
   if (!longPath) return NextResponse.next()
 
   url.pathname = longPath
