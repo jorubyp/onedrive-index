@@ -44,10 +44,16 @@ const excluded = [
   '_next'
 ]
 
+const oldLocales = ['de-DE', 'es', 'zh-CN', 'hi', 'id', 'tr-TR', 'zh-TW']
+
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url)
   const paths = url.pathname.split('/').filter(s => s !== "")
-  if (paths.length > 1 || paths[0] in excluded) return NextResponse.next()
+  if (oldLocales.includes(paths[0])) {
+    url.pathname = paths.slice(1).join('/')
+    return NextResponse.redirect(url)
+  }
+  if (paths.length > 1 || excluded.includes(paths[0])) return NextResponse.next()
   const longPath = await getLongPath(url, sanitiseQuery(paths[0]))
   if (!longPath) return NextResponse.next()
 
