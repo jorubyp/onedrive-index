@@ -41,6 +41,8 @@ const excluded = [
   'image',
   'icons',
   'favicon.ico',
+  'locales',
+  'players',
   '_next'
 ]
 
