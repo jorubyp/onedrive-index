@@ -29,6 +29,14 @@ export default function Folders() {
   const title = (query.path && Array.isArray(query.path) ? query.path[query.path.length - 1] : '')
   const formattedTitle = titleUnescape(title)
 
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const { videoId } = title.match(videoIdRegexp)?.groups || {}
+  if (typeof window !== 'undefined' && window.location.origin && videoId) {
+    const nextURL = `${window.location.origin}/${videoId}`
+    const nextState = { additionalInformation: 'Replaced long url with short url' }
+    window.history.replaceState(nextState, formattedTitle, nextURL)
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900">
       <Head>

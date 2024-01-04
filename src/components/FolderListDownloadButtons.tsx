@@ -232,12 +232,12 @@ const FolderListDownloadButtons: FC<{
             } else {
               clipboard.copy(`${getBaseUrl()}/${path}}`)
             }
-            toast.success(t('Copied short link to clipboard.'))
+            toast.success(t('Copied link to clipboard.'))
           }}
           btnColor="teal"
-          btnText={t('Copy Short Link')}
+          btnText={t('Copy Link')}
           btnIcon="copy"
-          btnTitle={t('Copy short link to the clipboard')}
+          btnTitle={t('Copy link to the clipboard')}
         />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
