@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
 import Navbar from '../components/Navbar'
-import FileListing from '../components/FileListing'
+import FileListing, { queryToPath } from '../components/FileListing'
 import Footer from '../components/Footer'
 
 const escape_chars = [
@@ -31,10 +31,8 @@ export default function Folders() {
 
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)\/?$/
   const { videoId } = title.match(videoIdRegexp)?.groups || {}
-  if (typeof window !== 'undefined' && window.location.origin && videoId) {
-    const nextURL = `${window.location.origin}/${videoId}`
-    const nextState = { ...window.history.state, url: `/${videoId}` }
-    window.history.replaceState(nextState, '', nextURL)
+  if (typeof window !== 'undefined' && videoId) {
+    window.history.replaceState('', '', `/${videoId}`)
   }
 
   return (

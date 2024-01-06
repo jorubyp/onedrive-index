@@ -37,7 +37,7 @@ import AudioPreview from './previews/AudioPreview'
  * @param query Url query property
  * @returns Path string
  */
-const queryToPath = (query?: ParsedUrlQuery) => {
+export const queryToPath = (query?: ParsedUrlQuery) => {
   if (query) {
     const { path } = query
     if (!path) return '/'
@@ -187,12 +187,17 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const AudioPlayer = React.memo<{ file: OdFileObject }>(function AudioPlayer({ file, }) {
-  return <AudioPreview file={file}/>;
+const AudioPlayer = React.memo<{ file: OdFileObject, path: string }>(function AudioPlayer({ file, path }) {
+  return <AudioPreview file={file} path={path}/>;
 });
 
-const VideoPlayer = React.memo<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined }>(function VideoPlayer({ file, thumbFile, subsFile }) {
-  return <VideoPreview file={file} thumbFile={thumbFile} subsFile={subsFile}/>;
+const VideoPlayer = React.memo<{
+  file: OdFileObject,
+  thumbFile: OdFileObject | undefined,
+  subsFile: OdFileObject | undefined,
+  path: string
+}>(function VideoPlayer({ file, thumbFile, subsFile, path }) {
+  return <VideoPreview file={file} thumbFile={thumbFile} subsFile={subsFile} path={path}/>;
 });
 
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function ReadMePreview({ file, path }) {
@@ -432,11 +437,11 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
       <>
         <Toaster />
 
-        {videoFile && <VideoPlayer file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
+        {videoFile && <VideoPlayer { ...folderProps } file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
         {!videoFile && audioFile && <AudioPlayer { ...folderProps } file={audioFile as OdFileObject} />}
         {(videoFile || audioFile) && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
-        {readmeFile && <ReadMePreview file={readmeFile as OdFileObject} path={path} />}
-        {descFile && <DescriptionPreview file={descFile as OdFileObject} />}
+        {readmeFile && <ReadMePreview  { ...folderProps } file={readmeFile as OdFileObject} />}
+        {descFile && <DescriptionPreview  { ...folderProps } file={descFile as OdFileObject} />}
 
         {!videoFile && (<FolderListLayout {...folderProps} videoList={videoList}/>)}
 

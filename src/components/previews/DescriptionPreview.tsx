@@ -8,10 +8,9 @@ function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
 }
 
-const DescriptionPreview = ({ file }) => {
+const DescriptionPreview = ({ file, path }) => {
   const { asPath } = useRouter()
-  const { t } = useTranslation()
-  const parentPath = asPath
+  const parentPath = path
 
   const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${encodeURIComponent(file.name)}`, asPath)
   if (error || validating || !content) {

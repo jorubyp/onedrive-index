@@ -74,10 +74,9 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined}> = ({ file, thumbFile, subsFile }) => {
+const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined, path: string}> = ({ file, thumbFile, subsFile, path }) => {
   let { asPath } = useRouter()
-  let folderPath = asPath
-  asPath += `/${encodeURIComponent(file.name)}`
+  asPath = path + `/${encodeURIComponent(file.name)}`
   
   const hashedToken = getStoredToken(asPath)
   const { t } = useTranslation()
@@ -85,7 +84,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   const defaultThumb = `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
   const thumbnail = thumbFile
-    ? `/api/raw/?path=${`${folderPath}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+    ? `/api/raw/?path=${`${path}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
     : defaultThumb
 
   const { result: thumbBlob = defaultThumb } = useAsync(async () => {
@@ -94,7 +93,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   }, [ thumbnail ])
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
-  const subtitle = subsFile && `/api/raw/?path=${`${folderPath}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const subtitle = subsFile && `/api/raw/?path=${`${path}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
 
   // We also format the raw video file for the in-browser player as well as all other players
   const videoUrl = `/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`

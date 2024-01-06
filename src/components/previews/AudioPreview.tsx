@@ -18,9 +18,10 @@ enum PlayerState {
   Paused,
 }
 
-const AudioPreview: FC<{ file: OdFileObject }> = ({ file }) => {
+const AudioPreview: FC<{ file: OdFileObject, path: string }> = ({ file, path }) => {
   const { t } = useTranslation()
-  const { asPath } = useRouter()
+  let { asPath } = useRouter()
+  asPath = path + `/${encodeURIComponent(file.name)}`
   const hashedToken = getStoredToken(asPath)
 
   const rapRef = useRef<ReactAudioPlayer>(null)

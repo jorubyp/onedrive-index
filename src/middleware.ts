@@ -61,5 +61,5 @@ export async function middleware(request: NextRequest) {
 
   url.pathname = longPath
   
-  return NextResponse.redirect(url);
+  return NextResponse.rewrite(url);
 }
