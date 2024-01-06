@@ -32,7 +32,7 @@ export default function Folders() {
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)\/?$/
   const { videoId } = title.match(videoIdRegexp)?.groups || {}
   if (typeof window !== 'undefined' && videoId) {
-    window.history.replaceState('', '', `/${videoId}`)
+    window.history.replaceState(window.history.state, '', `/${videoId}`)
   }
 
   return (
