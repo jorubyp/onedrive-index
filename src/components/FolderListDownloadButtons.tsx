@@ -1,7 +1,6 @@
 import type { OdFileObject, OdFolderChildren } from '../types'
 
 import { FC, MouseEventHandler } from 'react'
-import { useClipboard } from 'use-clipboard-copy'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useTranslation } from 'next-i18next'
 import Image from 'next/image'
@@ -77,23 +76,23 @@ export const DownloadButton = ({
 
 const fileTypeColors = {
   "Video": "orange",
-  "Audio": "purple",
-  "Thumbnail": "blue",
+  "Audio Only": "purple",
+  "Thumbnail": "teal",
   "Description": "grey",
-  "Info": "cyan",
+  "Metadata": "cyan",
   "Live Chat": "yellow",
 }
 
 const types = {
-  Video: [".mp4",".mkv"],
-  Audio: [".m4a",".mp3",".ogg"],
-  Thumbnail: [".jpg",".png",".webp"],
-  Description: [".description"]
+  Video: ["mp4","mkv"],
+  "Audio Only": ["m4a","mp3","ogg"],
+  Thumbnail: ["jpg","png","webp"],
+  Description: ["description"]
 }
 
 const GetFileDetails = (file: OdFileObject) => {
   const fname = file.name.substring(0, file.name.lastIndexOf('.'))
-  let ext = file.name.substring(file.name.lastIndexOf('.'))
+  let ext = getExtension(file.name)
   let fileType = ''
   for (const type in types) {
     if (types[type].includes(ext)) {
@@ -102,9 +101,9 @@ const GetFileDetails = (file: OdFileObject) => {
     }
   }
   if (fileType === '') {
-    if (file.name.endsWith('.info.json') || file.name.endsWith('.info')) {
-      fileType = "Info"
-      ext = '.info.json'
+    if (file.name.endsWith('.info.json') || ext === 'info') {
+      fileType = "Metadata"
+      ext = 'info.json'
     }
     if (file.name.includes('.live_chat.json')) {
       fileType = "Live Chat"
@@ -113,17 +112,11 @@ const GetFileDetails = (file: OdFileObject) => {
   if (fileType !== '') {
     const color = fileTypeColors[fileType]
     const index = Object.keys(fileTypeColors).indexOf(fileType)
-    //if (['Video', 'Audio'].includes(fileType)) {
+    //if (['Video', 'Audio Only'].includes(fileType)) {
     //  fileType += ` (${humanFileSize(file.size)})`
     //}
     return { fileType, color, index, fname, ext }
   }
-}
-
-const shorten = (longPath: string) => {
-  const videoIdRegexp = /.+\((?<videoId>[^)]+)\)$/
-  const { videoId } = decodeURIComponent(longPath).match(videoIdRegexp)?.groups || {}
-  return videoId
 }
 
 const FolderListDownloadButtons: FC<{
@@ -137,10 +130,8 @@ const FolderListDownloadButtons: FC<{
   path,
   folderChildren,
   selected,
-  toast,
   videoFile,
 }) => {
-  const clipboard = useClipboard()
   const hashedToken = getStoredToken(path)
 
   const { t } = useTranslation()
@@ -152,11 +143,6 @@ const FolderListDownloadButtons: FC<{
     selected[folderChildren[i].id] = true
   }
 
-  // Get item path from item name
-  const getItemPath = (name: string) => `${path === '/' ? '' : path}/${encodeURIComponent(name)}`
-  
-  const videoDetails = GetFileDetails(videoFile)
-
   const downloadFiles = async (files: FilePair[]) => {
     const tmpLink = document.createElement("a")
     tmpLink.style.display = 'none'
@@ -166,8 +152,8 @@ const FolderListDownloadButtons: FC<{
         const filepath = `${path}/${encodeURIComponent(file.name)}`
         const url = `${getBaseUrl()}/api/raw/?path=${filepath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
         tmpLink.setAttribute( 'href', url );
-        tmpLink.download = details.fname + details.ext
-        if (details.fileType === "Info") {
+        tmpLink.download = `${details.fname}.${details.ext}`
+        if (details.fileType === "Metadata") {
           const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
           const objectUrl: string = URL.createObjectURL(blob);
           tmpLink.href = objectUrl;
@@ -194,57 +180,58 @@ const FolderListDownloadButtons: FC<{
 
   const videoPair = {
     file: videoFile,
-    details: videoDetails
+    details: GetFileDetails(videoFile)
   }
 
-  const subFiles = folderChildren.filter(c => c.id !== (videoFile as OdFileObject).id)
+  const audioFile = folderChildren.filter(c => types['Audio Only'].includes(getExtension(c.name)))[0] as OdFileObject
+
+  const audioPair = {
+    file: audioFile,
+    details: GetFileDetails(audioFile)
+  } as FilePair
+
+  const subFiles = folderChildren.filter(c => ![videoFile.id, audioFile.id].includes(c.id))
     .map(c => ({
       file: c as OdFileObject,
       details: GetFileDetails(c as OdFileObject)
     } as FilePair))
 
-  const allFiles = [videoPair, ...subFiles]
+  const allFiles = [videoPair, audioPair, ...subFiles]
 
   return (
     <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="mb-2 flex flex-wrap justify-center gap-2">
-        {videoDetails &&
+        {videoPair.details &&
           <DownloadButton
             onClickCallback={() => downloadFiles([ videoPair ])}
-            btnColor={videoDetails["color"]}
-            btnText={`${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
+            btnColor={videoPair.details["color"]}
+            btnText={`${videoPair.details["fileType"]} (${humanFileSize(videoFile.size)})`}
             btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
-            btnTitle={`Download ${videoDetails["fileType"]} (${humanFileSize(videoFile.size)})`}
+            btnTitle={`Download ${videoPair.details["fileType"]} (${humanFileSize(videoFile.size)})`}
+          />
+        }
+        {audioPair.details &&
+          <DownloadButton
+            onClickCallback={() => downloadFiles([ audioPair ])}
+            btnColor={audioPair.details["color"]}
+            btnText={`${audioPair.details["fileType"]} (${humanFileSize(audioFile.size)})`}
+            btnIcon={getFileIcon(audioFile.name)}
+            btnTitle={`Download ${audioPair.details["fileType"]} (${humanFileSize(audioFile.size)})`}
           />
         }
         <DownloadButton
           onClickCallback={() => downloadFiles(allFiles)}
           btnColor="pink"
-          btnText={`All (${humanFileSize(totalSize)})`}
+          btnText={`All Files (${humanFileSize(totalSize)})`}
           btnIcon="download"
           btnTitle={t(`Download All (${humanFileSize(totalSize)})`)}
-        />
-        <DownloadButton
-          onClickCallback={() => {
-            const shortPath = shorten(path)
-            if (shortPath) {
-              clipboard.copy(`${getBaseUrl()}/${shortPath}`)
-            } else {
-              clipboard.copy(`${getBaseUrl()}/${path}}`)
-            }
-            toast.success(t('Copied link to clipboard.'))
-          }}
-          btnColor="teal"
-          btnText={t('Copy Link')}
-          btnIcon="copy"
-          btnTitle={t('Copy link to the clipboard')}
         />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {subFiles.sort(({ file: a }, { file: b }) => {
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
           const bdet = GetFileDetails(b as OdFileObject) || { index: 99 }
-          return adet["index"] > bdet["index"] ? 0 : 1
+          return adet["index"] > bdet["index"] ? 1 : 0
         })
         .map(({ file, details }, i) => {
           if (details) return (
