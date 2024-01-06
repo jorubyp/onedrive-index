@@ -33,8 +33,8 @@ export default function Folders() {
   const { videoId } = title.match(videoIdRegexp)?.groups || {}
   if (typeof window !== 'undefined' && window.location.origin && videoId) {
     const nextURL = `${window.location.origin}/${videoId}`
-    const nextState = { additionalInformation: 'Replaced long url with short url' }
-    window.history.replaceState(nextState, formattedTitle, nextURL)
+    const nextState = { ...window.history.state, url: `/${videoId}` }
+    window.history.replaceState(nextState, '', nextURL)
   }
 
   return (
