@@ -60,6 +60,8 @@ export async function middleware(request: NextRequest) {
   if (!longPath) return NextResponse.next()
 
   url.pathname = longPath
+
+  if (!url.pathname.endsWith('/')) url.pathname += '/'
   
   return NextResponse.rewrite(url);
 }
