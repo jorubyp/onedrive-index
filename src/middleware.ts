@@ -28,10 +28,14 @@ function sanitiseQuery(query: string): string {
 
 const getLongPath = async (url: URL, q: string) => {
   const data = await (await fetch(`${url.origin}/api/search/?q=${encodeURIComponent(q)}`)).json() as OdSearchResult
-  const folder = data.find(item => item.folder && item.name.includes(`(${q})`))
-  if (folder) {
-    const result = await (await fetch(`${url.origin}/api/item/?id=${folder.id}`)).json() as OdSearchResult
-    return `${mapAbsolutePath(result["parentReference"].path)}/${encodeURIComponent(result["name"])}`
+  try {
+    const folder = data.find(item => item.folder && item.name.includes(`(${q})`))
+    if (folder) {
+      const result = await (await fetch(`${url.origin}/api/item/?id=${folder.id}`)).json() as OdSearchResult
+      return `${mapAbsolutePath(result["parentReference"].path)}/${encodeURIComponent(result["name"])}`
+    }
+  } catch {
+    //
   }
   return
 }
