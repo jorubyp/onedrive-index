@@ -40,32 +40,24 @@ const getLongPath = async (url: URL, q: string) => {
   return
 }
 
-const excluded = [
-  'api',
-  'image',
-  'icons',
-  'favicon.ico',
-  'locales',
-  'players',
-  '_next'
-]
-
 const oldLocales = ['de-DE', 'es', 'zh-CN', 'hi', 'id', 'tr-TR', 'zh-TW']
 
 export async function middleware(request: NextRequest) {
   const url = new URL(request.url)
-  const paths = url.pathname.split('/').filter(s => s !== "")
+  const paths = url.pathname.split('/').filter(s => s)
   if (oldLocales.includes(paths[0])) {
     url.pathname = paths.slice(1).join('/')
     return NextResponse.redirect(url)
   }
-  if (paths.length > 1 || excluded.includes(paths[0])) return NextResponse.next()
-  const longPath = await getLongPath(url, sanitiseQuery(paths[0]))
-  if (!longPath) return NextResponse.next()
-
-  url.pathname = longPath
-
-  if (!url.pathname.endsWith('/')) url.pathname += '/'
-  
-  return NextResponse.rewrite(url);
+  if (paths.length === 1 && paths[0] == 'watch' && url.searchParams.get('v') !== null) {
+    console.log(request)
+    console.log(url.searchParams.get('v'))
+    const longPath = await getLongPath(url, sanitiseQuery(url.searchParams.get('v') || ''))
+    if (!longPath) return NextResponse.next()
+    url.pathname = longPath
+    console.log(longPath)
+    return NextResponse.rewrite(url);
+  } else {
+    return NextResponse.next()
+  }
 }
