@@ -61,7 +61,7 @@ const VideoPlayer: FC<{
     poster: thumbnail,
     tracks: [{ kind: 'captions', label: videoName, src: '', default: true }],
   }
-  const aspect = [ width ?? 16, height ?? 9 ]
+  const aspect = [ 16, 9 ] //[ width ?? 16, height ?? 9 ]
   if (aspect[0] < aspect[1]) aspect.reverse()
   const plyrOptions: Plyr.Options = {
     ratio: aspect.join(':'),//`${width ?? 16}:${height ?? 9}`,
