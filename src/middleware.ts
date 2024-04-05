@@ -50,12 +50,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
   if (paths.length === 1 && paths[0] == 'watch' && url.searchParams.get('v') !== null) {
-    console.log(request)
-    console.log(url.searchParams.get('v'))
     const longPath = await getLongPath(url, sanitiseQuery(url.searchParams.get('v') || ''))
     if (!longPath) return NextResponse.next()
     url.pathname = longPath
-    console.log(longPath)
     return NextResponse.rewrite(url);
   } else {
     return NextResponse.next()
