@@ -7,7 +7,8 @@ import rehypeRaw from 'rehype-raw'
 import { useTranslation } from 'next-i18next'
 import { LightAsync as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrowNight } from 'react-syntax-highlighter/dist/cjs/styles/hljs'
-
+import { faYoutube, faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import 'katex/dist/katex.min.css'
 
 import useFileContent from '../../utils/fetchOnMount'
@@ -111,12 +112,22 @@ const MarkdownPreview: FC<{
   let contentLines = content.split('\r\n')
   const titleLineRegexp = /### ``\[(?<date>\d{8})\] (?<title>.+) \[(?<channel>.+)\] \((?<videoId>[^\)]+)\)``/
   const { date, title, channel, videoId } = contentLines[0].match(titleLineRegexp)?.groups || {}
+  let icon;
+  if (videoId) {
+    if (videoId.match(/^(4|v)\d{10}$/)) {
+      icon = faTwitch
+    } else if (videoId.match(/^[\w-]{11}$/)) {
+      icon = faYoutube
+    } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
+      icon = faTwitter
+    }
+  }
   if (title) {
     return (
       <PreviewContainer>
         <div className="markdown-body">
           <div className="font-bold mb-1 text-xl">{title}</div>
-          <div className="mb-4"><span className="font-bold">{channel}</span></div>
+          <div className="mb-4">{icon && <FontAwesomeIcon icon={icon}/>} <span className="font-bold">{channel}</span></div>
           {/* Using rehypeRaw to render HTML inside Markdown is potentially dangerous, use under safe environments. (#18) */}
           <ReactMarkdown
             // @ts-ignore
