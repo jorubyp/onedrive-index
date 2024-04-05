@@ -1,6 +1,8 @@
 import type { OdFileObject, OdFolderChildren, OdFolderObject } from '../types'
 import { ParsedUrlQuery } from 'querystring'
 import { FC, MouseEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
+import { faYoutube, faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons'
+import { faVideoCamera } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import toast, { Toaster } from 'react-hot-toast'
 import emojiRegex from 'emoji-regex'
@@ -121,8 +123,22 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
     </span>
   )
 }
+
 export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
   const { render, emoji } = renderEmoji(child.name)
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const { videoId } = child.name.match(videoIdRegexp)?.groups || {}
+  if (videoId) {
+    if (videoId.match(/^(4|v)\d{10}$/)) {
+      return (<FontAwesomeIcon icon={faTwitch}/>)
+    } else if (videoId.match(/^[\w-]{11}$/)) {
+      return (<FontAwesomeIcon icon={faYoutube}/>)
+    } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
+      return (<FontAwesomeIcon icon={faTwitter}/>)
+    } else {
+      return (<FontAwesomeIcon icon={faVideoCamera}/>)
+    }
+  }
   return render ? (
     <span>{emoji ? emoji[0] : '📁'}</span>
   ) : (
