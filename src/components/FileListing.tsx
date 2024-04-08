@@ -135,7 +135,9 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
   const { path, date, titlechannel, videoId } = original.match(videoIdRegexp)?.groups || {}
 
-  if (path || !videoId) {
+  if (path) return path.slice(1, path.length-1)
+  
+  if (!videoId) {
     return (
       <span className="truncate">
         {original}
@@ -154,13 +156,24 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
   const slashedDate = `${year}/${month}/${day}`
   
-  const tail = breadcrumb ? '' : platform === undefined ? ` ${slashedDate}` : ` ${videoId}  ${slashedDate}`
-  let prefix = !breadcrumb && !title.startsWith('【') ? ' ' : ''
+  const unPadChars = ['「', '【', '『', '［', '（', '〈', '〔', '《', '〘', '〚']
+  const unPad = unPadChars.includes(title[0])
+
+  let columns: string[] = []
+  if (!breadcrumb) {
+    if (platform !== undefined) columns.push(videoId)
+    columns.push(slashedDate)
+  }
 
   return (
-    <span className={`${(!path && !breadcrumb) ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
-      {prefix}{titleUnescape(title)}
-    </span>
+    <>
+      <span className={`${(!breadcrumb && unPad) ? '!-ml-2 ' : ''}grow truncate`}>
+        {title}
+      </span>
+      <span className={'font-mono pl-0.5 float-right font-medium flex gap-x-5 text-gray-750 group-hover:text-gray-700'}>
+        {columns.map(s => <><span>{s}</span></>)}
+      </span>
+    </>
   )
 }
 

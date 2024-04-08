@@ -12,7 +12,7 @@ const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c })
         <div className="w-5 flex-shrink-0 text-center">
           <ChildIcon child={c} />
         </div>
-        <ChildName name={c.name}/>
+        <span className='ml-2.5 space-x-2 grow truncate flex'><ChildName name={c.name}/></span>
       </div>
     </div>
   )
@@ -26,7 +26,7 @@ const FolderListLayout = ({
   <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
     {folderChildren.filter((c: OdFolderChildren) => c.name !== "System Volume Information").map((c: OdFolderChildren, i) => (
       <div
-        className={`transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850${videoList && i === 0 ? ' animate-new-flash rounded-t' : ''}`}
+        className={`group transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850${videoList && i === 0 ? ' animate-new-flash rounded-t' : ''}`}
         key={c.id}
       >
         <Link

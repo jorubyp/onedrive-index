@@ -98,7 +98,7 @@ function SearchResultItemTemplate({
     <Link
       href={driveItemPath}
       passHref
-      className={`flex items-center space-x-4 border-b border-gray-400/30 px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-850 ${
+      className={`flex items-center border-b border-gray-400/30 px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-850 ${
         disabled ? 'pointer-events-none cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
@@ -106,8 +106,8 @@ function SearchResultItemTemplate({
         ? (PlatformIcon({ platform: GetPlatformFromID({ videoId })}))
         : (<FontAwesomeIcon icon={driveItem.file ? getFileIcon(driveItem.name) : ['far', 'folder']} />)
       }
-      <div className='overflow-hidden grow truncate'>
-        <div className="overflow-hidden truncate text-sm font-medium leading-8"><ChildName name={driveItem.name}/></div>
+      <div className='ml-4 overflow-hidden grow truncate'>
+        <div className="overflow-hidden flex truncate text-sm font-medium leading-8"><ChildName name={driveItem.name}/></div>
         <div
           className={`overflow-hidden truncate font-mono text-xs opacity-60 ${
             itemDescription === 'Loading ...' && 'animate-pulse'
