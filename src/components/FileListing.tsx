@@ -171,7 +171,7 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
         {title}
       </span>
       <span className={'font-mono pl-0.5 float-right font-medium flex gap-x-5 text-gray-750 group-hover:text-gray-700'}>
-        {columns.map(s => <><span>{s}</span></>)}
+        {columns.map((s, i) => <><span className={columns.length > 1 && i === 0 ? 'md:block hidden' : ''}>{s}</span></>)}
       </span>
     </>
   )
