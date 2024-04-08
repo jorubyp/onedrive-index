@@ -3,12 +3,12 @@ import type { OdFolderChildren } from '../types'
 import Link from 'next/link'
 import { FC } from 'react'
 
-import { ChildIcon, ChildName } from './FileListing'
+import { ChildIcon, ChildName, titleUnescape } from './FileListing'
 
 const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c }) => {
   return (
     <div className="grid cursor-pointer items-center space-x-2 px-3 py-2.5">
-      <div className="flex items-center space-x-2 truncate" title={c.name}>
+      <div className="flex items-center space-x-2 truncate" title={titleUnescape(c.name)}>
         <div className="w-5 flex-shrink-0 text-center">
           <ChildIcon child={c} />
         </div>

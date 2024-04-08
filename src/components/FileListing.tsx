@@ -67,7 +67,7 @@ const escape_chars = [
   ["*", "＊"],
 ]
 
-const titleUnescape = (title: string) => {
+export const titleUnescape = (title: string) => {
   for (const [ to_char, from_char] of escape_chars)
     title = title.replaceAll(from_char, to_char)
   return title
