@@ -134,15 +134,18 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
   
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
   const { path, date, titlechannel, videoId } = original.match(videoIdRegexp)?.groups || {}
-  if (path) return original
-  if (!date || !titlechannel || !videoId) {
+
+  if (path || !videoId) {
     return (
       <span className="truncate">
         {original}
       </span>
     )
   }
+
   const platform = GetPlatformFromID({ videoId })
+
+  if (breadcrumb && platform !== undefined) return videoId
 
   let { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
   if (platform === undefined) title += ` (${videoId})`
