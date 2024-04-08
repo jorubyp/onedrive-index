@@ -149,8 +149,8 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
   prefix += path ? `[${year}${month}${day}] ` : `${year}/${month}/${day} `
   if (!path && !title.startsWith('【')) prefix += ' '
   return (
-    <span className={`${!path && platform !== undefined ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={` ${tail}`}>
-      {prefix}{titleUnescape(title)}
+    <span className={`${(!path && platform !== undefined) ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={` ${tail}`}>
+      <span className='font-mono'>{prefix}</span>{titleUnescape(title)}
     </span>
   )
 }
