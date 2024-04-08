@@ -16,7 +16,7 @@ import { LoadingIcon } from './Loading'
 import { getFileIcon } from '../utils/getFileIcon'
 import { fetcher } from '../utils/fetchWithSWR'
 import siteConfig from '../../config/site.config'
-import { ChildName } from './FileListing'
+import { ChildName, GetPlatformFromID, PlatformIcon } from './FileListing'
 
 /**
  * Extract the searched item's path in field 'parentReference' and convert it to the
@@ -91,6 +91,9 @@ function SearchResultItemTemplate({
   itemDescription: string
   disabled: boolean
 }) {
+  
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const { videoId } = driveItem.name.match(videoIdRegexp)?.groups || {}
   return (
     <Link
       href={driveItemPath}
@@ -99,9 +102,11 @@ function SearchResultItemTemplate({
         disabled ? 'pointer-events-none cursor-not-allowed' : 'cursor-pointer'
       }`}
     >
-      <FontAwesomeIcon icon={driveItem.file ? getFileIcon(driveItem.name) : ['far', 'folder']} />
-      <div className='overflow-hidden truncate'>
-        <div className="overflow-hidden truncate text-sm font-medium leading-8"><ChildName name={driveItem.name} folder={true}/></div>
+      { videoId
+        ? (PlatformIcon({ platform: GetPlatformFromID({ videoId })}))
+        : (<FontAwesomeIcon icon={driveItem.file ? getFileIcon(driveItem.name) : ['far', 'folder']} />)
+      }
+      <div className='overflow-hidden grow truncate'>
         <div
           className={`overflow-hidden truncate font-mono text-xs opacity-60 ${
             itemDescription === 'Loading ...' && 'animate-pulse'
