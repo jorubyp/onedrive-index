@@ -129,10 +129,12 @@ export const PlatformIcon: FC<{ platform: Platform | undefined}> = ({ platform }
   }
 }
 
-export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
+export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, breadcrumb = false}) => {
   const original = titleUnescape(formatChildName(name))
+  
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
   const { path, date, titlechannel, videoId } = original.match(videoIdRegexp)?.groups || {}
+  if (path) return original
   if (!date || !titlechannel || !videoId) {
     return (
       <span className="truncate">
@@ -140,17 +142,21 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
       </span>
     )
   }
-  const { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
+  const platform = GetPlatformFromID({ videoId })
+
+  let { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
+  if (platform === undefined) title += ` (${videoId})`
+
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
-  const platform = GetPlatformFromID({ videoId })
-  const tail = platform !== undefined ? videoId : `(${videoId})`
-  let prefix = path ? path : ''
-  prefix += path ? `[${year}${month}${day}] ` : `${year}/${month}/${day} `
-  if (!path && !title.startsWith('【')) prefix += ' '
+  const slashedDate = `${year}/${month}/${day}`
+  
+  const tail = breadcrumb ? '' : platform === undefined ? ` ${slashedDate}` : ` ${videoId}  ${slashedDate}`
+  let prefix = !breadcrumb && !title.startsWith('【') ? ' ' : ''
+
   return (
-    <span className={`${(!path && platform !== undefined) ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={` ${tail}`}>
-      <span className='font-mono'>{prefix}</span>{titleUnescape(title)}
+    <span className={`${(!path && !breadcrumb) ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={tail}>
+      {prefix}{titleUnescape(title)}
     </span>
   )
 }

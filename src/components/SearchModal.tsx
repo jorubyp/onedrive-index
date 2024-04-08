@@ -107,12 +107,13 @@ function SearchResultItemTemplate({
         : (<FontAwesomeIcon icon={driveItem.file ? getFileIcon(driveItem.name) : ['far', 'folder']} />)
       }
       <div className='overflow-hidden grow truncate'>
+        <div className="overflow-hidden truncate text-sm font-medium leading-8"><ChildName name={driveItem.name}/></div>
         <div
           className={`overflow-hidden truncate font-mono text-xs opacity-60 ${
             itemDescription === 'Loading ...' && 'animate-pulse'
           }`}
         >
-          <ChildName name={itemDescription} folder={true} />
+          <ChildName name={itemDescription}/>
         </div>
       </div>
     </Link>

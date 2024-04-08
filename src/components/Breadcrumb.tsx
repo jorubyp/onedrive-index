@@ -41,7 +41,7 @@ const Breadcrumb: React.FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
                       i == 0 && 'pointer-events-none opacity-80'
                     }`}
                   >
-                    <ChildName name={p} folder={true}/>
+                    <ChildName name={p} breadcrumb={true}/>
                   </Link>
                 </li>
               )

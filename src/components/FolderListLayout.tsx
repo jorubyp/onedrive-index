@@ -12,7 +12,7 @@ const FileListItem: FC<{ fileContent: OdFolderChildren }> = ({ fileContent: c })
         <div className="w-5 flex-shrink-0 text-center">
           <ChildIcon child={c} />
         </div>
-        <ChildName name={c.name} folder={Boolean(c.folder)} />
+        <ChildName name={c.name}/>
       </div>
     </div>
   )
