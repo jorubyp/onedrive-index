@@ -14,6 +14,7 @@ import 'katex/dist/katex.min.css'
 import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
 import { LoadingIcon } from '../Loading'
+import { GetPlatformFromID, PlatformIcon } from '../FileListing'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
@@ -117,20 +118,15 @@ const MarkdownPreview: FC<{
     dateStr = [date.slice(0,4), date.slice(4,6), date.slice(6,8)].join('/')
   }
   if (videoId) {
-    if (videoId.match(/^(4|v)\d{10}$/)) {
-      icon = faTwitch
-    } else if (videoId.match(/^[\w-]{11}$/)) {
-      icon = faYoutube
-    } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
-      icon = faTwitter
-    }
+    const platform = GetPlatformFromID({ videoId })
+    icon = PlatformIcon({ platform })
   }
   if (title) {
     return (
       <PreviewContainer>
         <div className="markdown-body">
           <div className="font-bold mb-1 text-xl">{title}</div>
-          <div className="mb-1">{icon && <FontAwesomeIcon icon={icon}/>} <span className="font-bold">{channel}</span></div>
+          <div className="mb-1">{videoId && icon} <span className="font-bold">{channel}</span></div>
           <div className="font-bold mb-4 text-xs opacity-10">{dateStr}</div>
           {/* Using rehypeRaw to render HTML inside Markdown is potentially dangerous, use under safe environments. (#18) */}
           <ReactMarkdown

@@ -3,7 +3,7 @@ import { ParsedUrlQuery } from 'querystring'
 import { FC, MouseEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
 import { faYoutube, faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons'
 import { faVideoCamera } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome'
 import toast, { Toaster } from 'react-hot-toast'
 import emojiRegex from 'emoji-regex'
 
@@ -100,6 +100,35 @@ const splitChannelFromTitle = (fileName: string) => {
   }
 }
 
+export enum Platform {
+  youtube,
+  twitch,
+  twitter
+}
+
+export const GetPlatformFromID = ({ videoId }): Platform | undefined => {
+  if (videoId.match(/^(4|v)\d{10}$/)) {
+    return Platform.twitch
+  } else if (videoId.match(/^[\w-]{11}$/)) {
+    return Platform.youtube
+  } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
+    return Platform.twitter
+  }
+}
+
+export const PlatformIcon: FC<{ platform: Platform | undefined}> = ({ platform }) => {
+  switch(platform) {
+    case Platform.youtube:
+      return (<FontAwesomeIcon icon={faYoutube}/>)
+    case Platform.twitch:
+      return (<FontAwesomeIcon icon={faTwitch}/>)
+    case Platform.twitter:
+      return (<FontAwesomeIcon icon={faTwitter}/>)
+    default:
+      return (<FontAwesomeIcon icon={faVideoCamera}/>)
+  }
+}
+
 export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder }) => {
   const original = titleUnescape(formatChildName(name))
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
@@ -114,11 +143,13 @@ export const ChildName: FC<{ name: string; folder?: boolean }> = ({ name, folder
   const { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
+  const platform = GetPlatformFromID({ videoId })
+  const tail = platform !== undefined ? videoId : `(${videoId})`
   let prefix = path ? path : ''
   prefix += path ? `[${year}${month}${day}] ` : `${year}/${month}/${day} `
   if (!path && !title.startsWith('【')) prefix += ' '
   return (
-    <span className="truncate before:float-right before:content-[attr(data-tail)]" data-tail={` (${videoId})`}>
+    <span className={`${!path && platform !== undefined ? 'before:font-mono before:opacity-10 grow ' : ''}truncate before:float-right before:content-[attr(data-tail)]`} data-tail={` ${tail}`}>
       {prefix}{titleUnescape(title)}
     </span>
   )
@@ -129,15 +160,8 @@ export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
   const { videoId } = child.name.match(videoIdRegexp)?.groups || {}
   if (videoId) {
-    if (videoId.match(/^(4|v)\d{10}$/)) {
-      return (<FontAwesomeIcon icon={faTwitch}/>)
-    } else if (videoId.match(/^[\w-]{11}$/)) {
-      return (<FontAwesomeIcon icon={faYoutube}/>)
-    } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
-      return (<FontAwesomeIcon icon={faTwitter}/>)
-    } else {
-      return (<FontAwesomeIcon icon={faVideoCamera}/>)
-    }
+    const platform = GetPlatformFromID({ videoId })
+    return PlatformIcon({ platform })
   }
   return render ? (
     <span>{emoji ? emoji[0] : '📁'}</span>
