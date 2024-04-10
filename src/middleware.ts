@@ -1,19 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import siteConfig from '../config/site.config'
-import { OdSearchResult } from './types'
 
-function mapAbsolutePath(path: string): string {
-  // path is in the format of '/drive/root:/path/to/file', if baseDirectory is '/' then we split on 'root:',
-  // otherwise we split on the user defined 'baseDirectory'
-  const absolutePath = path.split(siteConfig.baseDirectory === '/' ? 'root:' : siteConfig.baseDirectory)
-  // path returned by the API may contain #, by doing a decodeURIComponent and then encodeURIComponent we can
-  // replace URL sensitive characters such as the # with %23
-  return absolutePath.length > 1 // solve https://github.com/spencerwooo/onedrive-vercel-index/issues/539
-    ? absolutePath[1]
-        .split('/')
-        .map(p => encodeURIComponent(decodeURIComponent(p)))
-        .join('/')
-    : ''
+const dec = decodeURIComponent
+
+function webUrlToRelativePath(path: string): string {
+  return path.split('onmicrosoft_com/Documents')[1]
+    .split('/')
+    .map(p => encodeURIComponent(dec(dec(p))))
+    .join('/')
 }
 
 function sanitiseQuery(query: string): string {
@@ -27,17 +21,15 @@ function sanitiseQuery(query: string): string {
 }
 
 const getLongPath = async (url: URL, q: string) => {
-  const data = await (await fetch(`${url.origin}/api/search/?q=${encodeURIComponent(q)}`)).json() as OdSearchResult
-  try {
-    const folder = data.find(item => item.folder && item.name.includes(`(${q})`))
-    if (folder) {
-      const result = await (await fetch(`${url.origin}/api/item/?id=${folder.id}`)).json() as OdSearchResult
-      return `${mapAbsolutePath(result["parentReference"].path)}/${encodeURIComponent(result["name"])}`
+  return await fetch(`${url.origin}/api/search/?q=${encodeURIComponent(q)}`)
+    .then(response => response.json().then(data => {
+      const folder = data.find(item => item.folder && item.name.includes(`(${q})`))
+      if (folder) {
+        const longPath = webUrlToRelativePath(folder["webUrl"])
+        return longPath
+      }
     }
-  } catch {
-    //
-  }
-  return
+  )).catch(() => {})
 }
 
 const oldLocales = ['de-DE', 'es', 'zh-CN', 'hi', 'id', 'tr-TR', 'zh-TW']
@@ -51,9 +43,10 @@ export async function middleware(request: NextRequest) {
   }
   if (paths.length === 1 && paths[0] == 'watch' && url.searchParams.get('v') !== null) {
     const longPath = await getLongPath(url, sanitiseQuery(url.searchParams.get('v') || ''))
-    if (!longPath) return NextResponse.next()
-    url.pathname = longPath
-    return NextResponse.rewrite(url);
+    if (!longPath) return NextResponse.redirect(url.origin);
+    const newUrl = new URL(url.origin)
+    newUrl.pathname = longPath
+    return NextResponse.rewrite(newUrl);
   } else {
     return NextResponse.next()
   }
