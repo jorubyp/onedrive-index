@@ -38,13 +38,15 @@ export function encodePath(path: string): string {
  * @returns Access token for OneDrive API
  */
 export async function getAccessToken(): Promise<string> {
-  const { accessToken, refreshToken } = await getOdAuthTokens()
+  const { accessToken } = await getOdAuthTokens()
 
   // Return in storage access token if it is still valid
   if (typeof accessToken === 'string') {
     console.log('Fetch access token from storage.')
     return accessToken
   }
+
+  const { refreshToken } = await getOdAuthTokens()
 
   // Return empty string if no refresh token is stored, which requires the application to be re-authenticated
   if (typeof refreshToken !== 'string') {

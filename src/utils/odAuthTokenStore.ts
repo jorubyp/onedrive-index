@@ -5,17 +5,21 @@ import siteConfig from '../../config/site.config'
 // https://vercel.com/integrations/upstash
 const kv = new Redis(process.env.REDIS_URL || '')
 //const kv_overflow = new Redis(process.env.REDIS_URL_OVERFLOW || '')
+  
+const accessTokenKey = `${siteConfig.kvPrefix}:tokens:access_token`
+const refreshTokenKey = `${siteConfig.kvPrefix}:tokens:refresh_token`
 
 export async function getOdAuthTokens(): Promise<{ accessToken: unknown; refreshToken: unknown }> {
-  
-  const accessToken = await kv.get(`${siteConfig.kvPrefix}:tokens:access_token`)
-    //.catch(_ => kv_overflow.get(`${siteConfig.kvPrefix}:tokens:access_token`))
-  const refreshToken = await kv.get(`${siteConfig.kvPrefix}:tokens:refresh_token`)
-    //.catch(_ => kv_overflow.get(`${siteConfig.kvPrefix}:tokens:refresh_token`))
+
+  const accessToken = await kv.get(accessTokenKey)
+  // Return redis storage access token if it is present
+  if (typeof accessToken === 'string') {
+    return { accessToken, refreshToken: null }
+  }
 
   return {
-    accessToken,
-    refreshToken,
+    accessToken: null,
+    refreshToken: await kv.get(refreshTokenKey),
   }
 }
 
