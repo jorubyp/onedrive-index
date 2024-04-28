@@ -47,9 +47,7 @@ function mapAbsolutePath(path: string): string {
 function useDriveItemSearch(includeMembers: boolean) {
   const [query, setQuery] = useState('')
   const searchDriveItem = async (q: string) => {
-    let { data } = await axios.get<OdSearchResult>(`/api/search/?q=${q}`, {
-      headers: { 'include-members': JSON.stringify(includeMembers) }
-    })
+    let { data } = await axios.get<OdSearchResult>(`/api/search/?q=${q}&members=${JSON.stringify(includeMembers)}`)
 
     // Map parentReference to the absolute path of the search result
     data = data.filter(item => item.folder).map(item => {
@@ -95,9 +93,10 @@ function SearchResultItemTemplate({
   
   const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
   const { videoId } = driveItem.name.match(videoIdRegexp)?.groups || {}
+  const url = videoId ? `/watch?v=${videoId}` : driveItemPath
   return (
     <Link
-      href={driveItemPath}
+      href={url}
       passHref
       className={`flex items-center border-b border-gray-400/30 px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-850 ${
         disabled ? 'pointer-events-none cursor-not-allowed' : 'cursor-pointer'
