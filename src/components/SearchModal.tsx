@@ -1,5 +1,4 @@
 import axios from 'axios'
-import useSWR, { SWRResponse } from 'swr'
 import { Dispatch, Fragment, SetStateAction, useState } from 'react'
 import AwesomeDebouncePromise from 'awesome-debounce-promise'
 import { useAsync } from 'react-async-hook'
@@ -10,13 +9,13 @@ import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Dialog, Transition } from '@headlessui/react'
 
-import type { OdDriveItem, OdSearchResult } from '../types'
+import type { OdSearchResult } from '../types'
 import { LoadingIcon } from './Loading'
 
 import { getFileIcon } from '../utils/getFileIcon'
-import { fetcher } from '../utils/fetchWithSWR'
 import siteConfig from '../../config/site.config'
 import { ChildName, GetPlatformFromID, PlatformIcon } from './FileListing'
+import { getIncludeMembers } from '../utils/protectedRouteHandler'
 
 /**
  * Extract the searched item's path in field 'parentReference' and convert it to the
@@ -28,7 +27,7 @@ import { ChildName, GetPlatformFromID, PlatformIcon } from './FileListing'
 function mapAbsolutePath(path: string): string {
   // path is in the format of '/drive/root:/path/to/file', if baseDirectory is '/' then we split on 'root:',
   // otherwise we split on the user defined 'baseDirectory'
-  const absolutePath = path.split(siteConfig.baseDirectory === '/' ? 'root:' : siteConfig.baseDirectory)
+  const absolutePath = path.split(`_com/Documents${siteConfig.baseDirectory === '/' ? '' : siteConfig.baseDirectory}`)
   // path returned by the API may contain #, by doing a decodeURIComponent and then encodeURIComponent we can
   // replace URL sensitive characters such as the # with %23
   return absolutePath.length > 1 // solve https://github.com/spencerwooo/onedrive-vercel-index/issues/539
@@ -45,10 +44,12 @@ function mapAbsolutePath(path: string): string {
  *
  * @returns A react hook for a debounced async search of the drive
  */
-function useDriveItemSearch() {
+function useDriveItemSearch(includeMembers: boolean) {
   const [query, setQuery] = useState('')
   const searchDriveItem = async (q: string) => {
-    let { data } = await axios.get<OdSearchResult>(`/api/search/?q=${q}`)
+    let { data } = await axios.get<OdSearchResult>(`/api/search/?q=${q}`, {
+      headers: { 'include-members': JSON.stringify(includeMembers) }
+    })
 
     // Map parentReference to the absolute path of the search result
     data = data.filter(item => item.folder).map(item => {
@@ -121,40 +122,13 @@ function SearchResultItemTemplate({
 }
 
 function SearchResultItemLoadRemote({ result }: { result: OdSearchResult[number] }) {
-  const { data, error }: SWRResponse<OdDriveItem, { status: number; message: any }> = useSWR(
-    [`/api/item/?id=${result.id}`],
-    fetcher
-  )
-
-  const { t } = useTranslation()
-
-  if (error) {
-    return (
-      <SearchResultItemTemplate
-        driveItem={result}
-        driveItemPath={''}
-        itemDescription={typeof error.message?.error === 'string' ? error.message.error : JSON.stringify(error.message)}
-        disabled={true}
-      />
-    )
-  }
-  if (!data) {
-    return (
-      <SearchResultItemTemplate
-        driveItem={result}
-        driveItemPath={''}
-        itemDescription={t('Loading ...')}
-        disabled={true}
-      />
-    )
-  }
-
-  const driveItemPath = `${mapAbsolutePath(data.parentReference.path)}/${encodeURIComponent(data.name)}`
+  const driveItemPath = mapAbsolutePath(result.webUrl)
+  const driveItemDir = driveItemPath.split('/').slice(0,-1).join('/').slice(1)
   return (
     <SearchResultItemTemplate
       driveItem={result}
       driveItemPath={driveItemPath}
-      itemDescription={decodeURIComponent(driveItemPath)}
+      itemDescription={decodeURIComponent(driveItemDir)}
       disabled={false}
     />
   )
@@ -185,7 +159,8 @@ export default function SearchModal({
   searchOpen: boolean
   setSearchOpen: Dispatch<SetStateAction<boolean>>
 }) {
-  const { query, setQuery, results } = useDriveItemSearch()
+  const includeMembers = getIncludeMembers()
+  const { query, setQuery, results } = useDriveItemSearch(includeMembers)
 
   const { t } = useTranslation()
 

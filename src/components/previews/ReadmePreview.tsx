@@ -15,6 +15,7 @@ import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
 import { LoadingIcon } from '../Loading'
 import { GetPlatformFromID, PlatformIcon } from '../FileListing'
+import { OdDriveItem } from '../../types'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
@@ -27,7 +28,7 @@ const MarkdownPreview: FC<{
   // The parent folder of the markdown file, which is also the relative image folder
   const parentPath = path
 
-  const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${encodeURIComponent(file.name)}`, path)
+  const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"], path)
   const { t } = useTranslation()
 
   // Check if the image is relative path instead of a absolute url
@@ -93,7 +94,7 @@ const MarkdownPreview: FC<{
   if (error) {
     return (
       <PreviewContainer>
-        <FourOhFour errorMsg={error} />
+        <FourOhFour message={error} />
       </PreviewContainer>
     )
   }
@@ -122,8 +123,8 @@ const MarkdownPreview: FC<{
     icon = PlatformIcon({ platform })
   }
   const unPadChars = ['「', '【', '『', '［', '（', '〈', '〔', '《', '〘', '〚']
-  const unPad = unPadChars.includes(title[0])
   if (title) {
+    const unPad = unPadChars.includes(title[0])
     return (
       <PreviewContainer>
         <div className="markdown-body">
@@ -144,7 +145,7 @@ const MarkdownPreview: FC<{
             {
               contentLines.slice(1).join('\r\n')
                 .replace(/\[[^\]]+\] \([^)]+\)`+\r/, '')
-                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
+                .replace(/<https:\/\/[^>]+>/, '')
                 .replace(/@[^#]+#\d+/, '')
             }
           </ReactMarkdown>
@@ -170,7 +171,7 @@ const MarkdownPreview: FC<{
               content
                 .replace(/### `+\[20\d{6}\] /, '### ')
                 .replace(/\[[^\]]+\] \([^)]+\)`+\r/, '')
-                .replace(/<https:\/\/rby[a-z]\d+.vercel.app\/.+>/, '')
+                .replace(/<https:\/\/[^>]+>/, '')
                 .replace(/@[^#]+#\d+/, '')
             }
           </ReactMarkdown>

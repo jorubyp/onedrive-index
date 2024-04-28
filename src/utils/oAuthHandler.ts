@@ -97,7 +97,7 @@ export async function requestTokenWithAuthCode(code: string, config: any): Promi
 // Verify the identity of the user with the access token and compare it with the userPrincipalName
 // in the Microsoft Graph API. If the userPrincipalName matches, proceed with token storing.
 export async function getAuthPersonInfo(accessToken: string) {
-  const profileApi = apiConfig.driveApi.replace('/drive', '')
+  const profileApi = `${apiConfig.graphApi}/me`
   return axios.get(profileApi, {
     headers: {
       Authorization: `Bearer ${accessToken}`,

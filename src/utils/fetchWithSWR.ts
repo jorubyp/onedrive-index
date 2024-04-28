@@ -1,24 +1,37 @@
-import axios from 'axios'
 import useSWRInfinite from 'swr/infinite'
 
 import type { OdAPIResponse } from '../types'
 
-import { getStoredToken } from './protectedRouteHandler'
+import { getIncludeMembers } from './protectedRouteHandler'
 
 // Common axios fetch function for use with useSWR
-export async function fetcher([url, token]: [url: string, token?: string]): Promise<any> {
+export async function fetcher(url: string): Promise<any> {
   try {
-    return (
-      await (token
-        ? axios.get(url, {
-            headers: { 'od-protected-token': token },
-          })
-        : axios.get(url))
-    ).data
+    const res = await fetch(url)
+    const data = await res.json()
+    return { status: res.status, ...data }
   } catch (err: any) {
-    throw { status: err.response.status, message: err.response.data }
+    throw { status: err.response.status, error: err.response.data }
   }
 }
+/**
+ * Paging with useSWRInfinite + protected token support
+ * @param path Current query directory path
+ * @returns useSWRInfinite API
+ */
+export function useProtectedSWRWatch(videoId: string = '') {
+  const includeMembers = getIncludeMembers()
+  
+  // Disable auto-revalidate, these options are equivalent to useSWRImmutable
+  // https://swr.vercel.app/docs/revalidation#disable-automatic-revalidations
+  const revalidationOptions = {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: true,
+  }
+  return useSWRInfinite(() => `/api/watch?videoId=${videoId}&members=${JSON.stringify(includeMembers)}`, fetcher, revalidationOptions)
+}
+
 
 /**
  * Paging with useSWRInfinite + protected token support
@@ -26,7 +39,7 @@ export async function fetcher([url, token]: [url: string, token?: string]): Prom
  * @returns useSWRInfinite API
  */
 export function useProtectedSWRInfinite(path: string = '') {
-  const hashedToken = getStoredToken(path)
+  const includeMembers = getIncludeMembers()
 
   /**
    * Next page infinite loading for useSWR
@@ -35,15 +48,15 @@ export function useProtectedSWRInfinite(path: string = '') {
    * @param path Directory path
    * @returns API to the next page
    */
-  function getNextKey(pageIndex: number, previousPageData: OdAPIResponse): (string | null)[] | null {
+  function getNextKey(pageIndex: number, previousPageData: OdAPIResponse): string | null {
     // Reached the end of the collection
     if (previousPageData && !previousPageData.folder) return null
 
     // First page with no prevPageData
-    if (pageIndex === 0) return [`/api/?path=${path}`, hashedToken]
+    if (pageIndex === 0) return `/api/?path=${path}&members=${JSON.stringify(includeMembers)}`
 
     // Add nextPage token to API endpoint
-    return [`/api/?path=${path}&next=${previousPageData.next}`, hashedToken]
+    return `/api/?path=${path}&members=${JSON.stringify(includeMembers)}next=${previousPageData.next}`
   }
 
   // Disable auto-revalidate, these options are equivalent to useSWRImmutable

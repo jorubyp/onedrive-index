@@ -3,6 +3,7 @@ import { useTranslation } from 'next-i18next'
 
 import useFileContent from '../../utils/fetchOnMount'
 import React from 'react'
+import { OdDriveItem } from '../../types'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
@@ -10,9 +11,8 @@ function PreviewContainer({ children }): JSX.Element {
 
 const DescriptionPreview = ({ file, path }) => {
   const { asPath } = useRouter()
-  const parentPath = path
 
-  const { response: content, error, validating } = useFileContent(`/api/raw/?path=${parentPath}/${encodeURIComponent(file.name)}`, asPath)
+const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"], asPath)
   if (error || validating || !content) {
     return (<></>)
   }

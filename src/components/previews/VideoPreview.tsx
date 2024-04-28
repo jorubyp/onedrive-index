@@ -1,4 +1,4 @@
-import type { OdFileObject } from '../../types'
+import type { OdDriveItem, OdFileObject } from '../../types'
 
 import { FC, useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
@@ -9,7 +9,6 @@ import Plyr from 'plyr-react'
 import { useAsync } from 'react-async-hook'
 
 import { getExtension } from '../../utils/getFileIcon'
-import { getStoredToken } from '../../utils/protectedRouteHandler'
 
 import FourOhFour from '../FourOhFour'
 import Loading from '../Loading'
@@ -78,25 +77,16 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   let { asPath } = useRouter()
   asPath = path + `/${encodeURIComponent(file.name)}`
   
-  const hashedToken = getStoredToken(asPath)
   const { t } = useTranslation()
 
-  const defaultThumb = `/api/thumbnail/?path=${asPath}&size=large${hashedToken ? `&odpt=${hashedToken}` : ''}`
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
-  const thumbnail = thumbFile
-    ? `/api/raw/?path=${`${path}/${encodeURIComponent(thumbFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
-    : defaultThumb
-
-  const { result: thumbBlob = defaultThumb } = useAsync(async () => {
-    const blob: Blob = new Blob([await fetch(thumbnail).then(r => r.blob())], {type: 'application/json'});
-    return URL.createObjectURL(blob)
-  }, [ thumbnail ])
+  const thumbnail = thumbFile ? thumbFile.thumbnailUrl : file.thumbnailUrl
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
-  const subtitle = subsFile && `/api/raw/?path=${`${path}/${encodeURIComponent(subsFile.name)}`}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const subtitle = subsFile && subsFile["@microsoft.graph.downloadUrl"]
 
   // We also format the raw video file for the in-browser player as well as all other players
-  const videoUrl = `/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const videoUrl = file["@microsoft.graph.downloadUrl"]
 
   const isFlv = getExtension(file.name) === 'flv'
   const {
@@ -112,7 +102,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   return (
     <PreviewContainer>
       {error ? (
-        <FourOhFour errorMsg={error.message} />
+        <FourOhFour message={error.message} />
       ) : loading && isFlv ? (
         <Loading loadingText={t('Loading FLV extension...')} />
       ) : (
@@ -121,7 +111,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
           videoUrl={videoUrl}
           width={file.video?.width}
           height={file.video?.height}
-          thumbnail={thumbBlob}
+          thumbnail={thumbnail ?? ''}
           subtitle={subtitle ?? ''}
           isFlv={isFlv}
           mpegts={mpegts}

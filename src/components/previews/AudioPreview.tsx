@@ -1,4 +1,4 @@
-import type { OdFileObject } from '../../types'
+import type { OdDriveItem, OdFileObject, OdFolderChildren } from '../../types'
 import { FC, useEffect, useRef, useState } from 'react'
 
 import ReactAudioPlayer from 'react-audio-player'
@@ -8,8 +8,6 @@ import { useRouter } from 'next/router'
 
 import { PreviewContainer } from './Containers'
 import { LoadingIcon } from '../Loading'
-import { formatModifiedDateTime } from '../../utils/fileDetails'
-import { getStoredToken } from '../../utils/protectedRouteHandler'
 
 enum PlayerState {
   Loading,
@@ -22,14 +20,13 @@ const AudioPreview: FC<{ file: OdFileObject, path: string }> = ({ file, path }) 
   const { t } = useTranslation()
   let { asPath } = useRouter()
   asPath = path + `/${encodeURIComponent(file.name)}`
-  const hashedToken = getStoredToken(asPath)
 
   const rapRef = useRef<ReactAudioPlayer>(null)
   const [playerStatus, setPlayerStatus] = useState(PlayerState.Loading)
   const [playerVolume, setPlayerVolume] = useState(1)
-
+  
   // Render audio thumbnail, and also check for broken thumbnails
-  const thumbnail = `/api/thumbnail/?path=${asPath}&size=medium${hashedToken ? `&odpt=${hashedToken}` : ''}`
+  const thumbnail = file.thumbnailUrl
   const [brokenThumbnail, setBrokenThumbnail] = useState(false)
 
   useEffect(() => {
@@ -83,19 +80,9 @@ const AudioPreview: FC<{ file: OdFileObject, path: string }> = ({ file, path }) 
               size="2x"
             />
           )}
-        </div>
-
-        <div className="flex w-full flex-col justify-between">
-          <div>
-            <div className="mb-2 font-medium">{file.name}</div>
-            <div className="mb-4 text-sm text-gray-500">
-              {t('Last modified:') + ' ' + formatModifiedDateTime(file.lastModifiedDateTime)}
-            </div>
-          </div>
-
           <ReactAudioPlayer
             className="h-11 w-full"
-            src={`/api/raw/?path=${asPath}${hashedToken ? `&odpt=${hashedToken}` : ''}`}
+            src={file["@microsoft.graph.downloadUrl"]}
             ref={rapRef}
             controls
             preload="auto"

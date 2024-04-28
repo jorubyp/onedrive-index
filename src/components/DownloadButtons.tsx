@@ -1,14 +1,12 @@
-import type { OdFileObject, OdFolderChildren } from '../types'
+import type { OdDriveItem, OdFileObject, OdFolderChildren } from '../types'
 
 import { FC, MouseEventHandler } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useTranslation } from 'next-i18next'
 import Image from 'next/image'
 
-import { getBaseUrl } from '../utils/getBaseUrl'
 import { humanFileSize } from '../utils/fileDetails'
 
-import { getStoredToken } from '../utils/protectedRouteHandler'
 import { getExtension, getFileIcon } from '../utils/getFileIcon'
 import { IconProp } from '@fortawesome/fontawesome-svg-core'
 
@@ -122,25 +120,19 @@ const GetFileDetails = (file: OdFileObject) => {
 const FolderListDownloadButtons: FC<{
   path: string,
   folderChildren: OdFolderChildren[],
-  selected: { [key: string]: boolean },
-  handleSelectedDownload: any,
   toast: any,
   videoFile: OdFileObject
 }> = ({
   path,
   folderChildren,
-  selected,
   videoFile,
 }) => {
-  const hashedToken = getStoredToken(path)
-
   const { t } = useTranslation()
   
   let totalSize = 0
   for (let i = 0; i < folderChildren.length; i++) {
     if (folderChildren[i].folder) continue
     totalSize += folderChildren[i].size
-    selected[folderChildren[i].id] = true
   }
 
   const downloadFiles = async (files: FilePair[]) => {
@@ -148,9 +140,9 @@ const FolderListDownloadButtons: FC<{
     tmpLink.style.display = 'none'
     document.body.appendChild(tmpLink)
     for(const { file, details } of files) {
+      const driveId = (file as unknown as OdDriveItem).parentReference.driveId
       if (details) {
-        const filepath = `${path}/${encodeURIComponent(file.name)}`
-        const url = `${getBaseUrl()}/api/raw/?path=${filepath}${hashedToken ? `&odpt=${hashedToken}` : ''}`
+        const url = file["@microsoft.graph.downloadUrl"]
         tmpLink.setAttribute( 'href', url );
         tmpLink.download = `${details.fname}.${details.ext}`
         if (details.fileType === "Metadata") {

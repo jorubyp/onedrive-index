@@ -27,6 +27,8 @@ export type OdFileObject = {
   id: string
   lastModifiedDateTime: string
   file: { mimeType: string; hashes: { quickXorHash: string; sha1Hash?: string; sha256Hash?: string } }
+  thumbnailUrl?: string // Not returned by the OneDrive API
+                        // set in api/index.js to batch request them instead of indiviually in components
   image?: OdImageFile
   video?: OdVideoFile
 }
@@ -37,6 +39,7 @@ export type OdImageFile = {
 }
 // A representation of a OneDrive video file. All fields are declared here, but we mainly use 'width' and 'height'.
 export type OdVideoFile = {
+  "@microsoft.graph.downloadUrl"?: string
   width: number
   height: number
   duration: number
@@ -61,6 +64,7 @@ export type OdSearchResult = Array<{
   folder?: OdFolderObject
   path: string
   parentReference: { id: string; name: string; path: string }
+  webUrl: string
 }>
 // API response object for /api/item/?id={id}. This is primarily used for determining the path of the driveItem by ID.
 export type OdDriveItem = {
@@ -68,5 +72,10 @@ export type OdDriveItem = {
   '@odata.etag': string
   id: string
   name: string
-  parentReference: { driveId: string; driveType: string; id: string; path: string }
+  parentReference: {
+    driveId: string;
+    driveType: string;
+    id: string;
+    path: string
+  }
 }

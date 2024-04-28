@@ -1,9 +1,9 @@
 import type { OdFileObject, OdFolderChildren, OdFolderObject } from '../types'
 import { ParsedUrlQuery } from 'querystring'
-import { FC, MouseEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
+import { FC, MouseEventHandler, useEffect, useRef, useState } from 'react'
 import { faYoutube, faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons'
 import { faVideoCamera } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon, FontAwesomeIconProps } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import toast, { Toaster } from 'react-hot-toast'
 import emojiRegex from 'emoji-regex'
 
@@ -11,27 +11,14 @@ import { useRouter } from 'next/router'
 import { useTranslation } from 'next-i18next'
 
 import { useProtectedSWRInfinite } from '../utils/fetchWithSWR'
-import { getRawExtension, getFileIcon, getExtension } from '../utils/getFileIcon'
-import { getStoredToken } from '../utils/protectedRouteHandler'
-import {
-  DownloadingToast,
-  downloadMultipleFiles,
-  downloadTreelikeMultipleFiles,
-  traverseFolder,
-} from './MultiFileDownloader'
+import { getFileIcon } from '../utils/getFileIcon'
 
 import Loading, { LoadingIcon } from './Loading'
 import FourOhFour from './FourOhFour'
-import Auth from './Auth'
-import VideoPreview from './previews/VideoPreview'
 import { PreviewContainer } from './previews/Containers'
-
-import FolderListLayout from './FolderListLayout'
 import React from 'react'
-import FolderListDownloadButtons from './FolderListDownloadButtons'
 import ReadmePreview from './previews/ReadmePreview'
-import DescriptionPreview from './previews/DescriptionPreview'
-import AudioPreview from './previews/AudioPreview'
+import FolderListLayout from './FolderListLayout'
 
 /**
  * Convert url query into path string
@@ -249,33 +236,13 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
   )
 }
 
-const AudioPlayer = React.memo<{ file: OdFileObject, path: string }>(function AudioPlayer({ file, path }) {
-  return <AudioPreview file={file} path={path}/>;
-});
-
-const VideoPlayer = React.memo<{
-  file: OdFileObject,
-  thumbFile: OdFileObject | undefined,
-  subsFile: OdFileObject | undefined,
-  path: string
-}>(function VideoPlayer({ file, thumbFile, subsFile, path }) {
-  return <VideoPreview file={file} thumbFile={thumbFile} subsFile={subsFile} path={path}/>;
-});
-
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function ReadMePreview({ file, path }) {
   return <ReadmePreview file={file} path={path} />;
 });
 
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
-  const [selected, setSelected] = useState<{ [key: string]: boolean }>({})
-  const [totalSelected, setTotalSelected] = useState<0 | 1 | 2>(0)
-  const [totalGenerating, setTotalGenerating] = useState<boolean>(false)
-  const [folderGenerating, setFolderGenerating] = useState<{
-    [key: string]: boolean
-  }>({})
 
   const router = useRouter()
-  const hashedToken = getStoredToken(router.asPath)
 
   const { t } = useTranslation()
 
@@ -292,7 +259,7 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
 
     return (
       <PreviewContainer>
-        {error.status === 401 ? <Auth redirect={path} /> : <FourOhFour errorMsg={JSON.stringify(error.message)} />}
+        <FourOhFour code={error.status} message={JSON.stringify(error.message)} />
       </PreviewContainer>
     )
   }
@@ -319,27 +286,6 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     // Find README.md file to render
     const readmeFile = folderChildren.find(c => c.name.toLowerCase() === 'readme.md')
 
-    const descFile = folderChildren.find(c => c.name.endsWith('.description'))
-    
-    const videoExts = [
-      "mp4", "mkv", "webm"
-    ]
-    const audioExts = [
-      "m4a", "ogg", "mp3"
-    ]
-    const thumbExts = [
-      "jpg", "png", "webp"
-    ]
-    const subsExts = [
-      "vtt", "srt", "ass"
-    ]
-
-    // Find files to use
-    const videoFile = folderChildren.find(c => videoExts.includes(getExtension(c.name)))
-    const audioFile = folderChildren.find(c => audioExts.includes(getExtension(c.name)))
-    const thumbFile = folderChildren.find(c => thumbExts.includes(getExtension(c.name)))
-    const subsFile = folderChildren.find(c => subsExts.includes(getExtension(c.name)))
-
     // Hide README.md from file listing
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
 
@@ -347,167 +293,21 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     const videoList = folderChildren.every(child => child.name.match(/^\[\d{8}\] .+/))
     if (videoList) folderChildren.reverse()
 
-    // Filtered file list helper
-    const getFiles = () => folderChildren.filter(c => !c.folder && c.name !== '.password')
-
-    // File selection
-    const genTotalSelected = (selected: { [key: string]: boolean }) => {
-      const selectInfo = getFiles().map(c => Boolean(selected[c.id]))
-      const [hasT, hasF] = [selectInfo.some(i => i), selectInfo.some(i => !i)]
-      return hasT && hasF ? 1 : !hasF ? 2 : 0
-    }
-
-    const toggleItemSelected = (id: string) => {
-      let val: SetStateAction<{ [key: string]: boolean }>
-      if (selected[id]) {
-        val = { ...selected }
-        delete val[id]
-      } else {
-        val = { ...selected, [id]: true }
-      }
-      setSelected(val)
-      setTotalSelected(genTotalSelected(val))
-    }
-
-    const toggleTotalSelected = () => {
-      if (genTotalSelected(selected) == 2) {
-        setSelected({})
-        setTotalSelected(0)
-      } else {
-        setSelected(Object.fromEntries(getFiles().map(c => [c.id, true])))
-        setTotalSelected(2)
-      }
-    }
-
-    // Selected file download
-    const handleSelectedDownload = () => {
-      const folderName = path.substring(path.lastIndexOf('/') + 1)
-      const folder = folderName ? decodeURIComponent(folderName) : undefined
-      const files = getFiles()
-        .filter(c => selected[c.id])
-        .map(c => ({
-          name: c.name,
-          url: `/api/raw/?path=${path}/${encodeURIComponent(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`,
-        }))
-      const tmpLink = document.createElement("a")
-      tmpLink.style.display = 'none'
-      document.body.appendChild(tmpLink)
-      for( var i = 0; i < files.length; i++ ) {
-        tmpLink.setAttribute( 'href', files[i].url );
-        tmpLink.setAttribute( 'download', files[i].name );
-        tmpLink.click();
-      }
-      document.body.removeChild(tmpLink)
-      return
-      if (files.length == 1) {
-        const el = document.createElement('a')
-        el.style.display = 'none'
-        document.body.appendChild(el)
-        el.href = files[0].url
-        el.click()
-        el.remove()
-      } else if (files.length > 1) {
-        setTotalGenerating(true)
-
-        const toastId = toast.loading(<DownloadingToast router={router} />)
-        downloadMultipleFiles({ toastId, router, files, folder })
-          .then(() => {
-            setTotalGenerating(false)
-            toast.success(t('Finished downloading selected files.'), {
-              id: toastId,
-            })
-          })
-          .catch(() => {
-            setTotalGenerating(false)
-            toast.error(t('Failed to download selected files.'), { id: toastId })
-          })
-      }
-    }
-
-    // Get selected file permalink
-    const handleSelectedPermalink = (baseUrl: string) => {
-      return getFiles()
-        .filter(c => selected[c.id])
-        .map(
-          c =>
-            `${baseUrl}/api/raw/?path=${path}/${encodeURIComponent(c.name)}${hashedToken ? `&odpt=${hashedToken}` : ''}`
-        )
-        .join('\n')
-    }
-
-    // Folder recursive download
-    const handleFolderDownload = (path: string, id: string, name?: string) => () => {
-      const files = (async function* () {
-        for await (const { meta: c, path: p, isFolder, error } of traverseFolder(path)) {
-          if (error) {
-            toast.error(
-              t('Failed to download folder {{path}}: {{status}} {{message}} Skipped it to continue.', {
-                path: p,
-                status: error.status,
-                message: error.message,
-              })
-            )
-            continue
-          }
-          const hashedTokenForPath = getStoredToken(p)
-          yield {
-            name: c?.name,
-            url: `/api/raw/?path=${p}${hashedTokenForPath ? `&odpt=${hashedTokenForPath}` : ''}`,
-            path: p,
-            isFolder,
-          }
-        }
-      })()
-
-      setFolderGenerating({ ...folderGenerating, [id]: true })
-      const toastId = toast.loading(<DownloadingToast router={router} />)
-
-      downloadTreelikeMultipleFiles({
-        toastId,
-        router,
-        files,
-        basePath: path,
-        folder: name,
-      })
-        .then(() => {
-          setFolderGenerating({ ...folderGenerating, [id]: false })
-          toast.success(t('Finished downloading folder.'), { id: toastId })
-        })
-        .catch((reason) => {
-          setFolderGenerating({ ...folderGenerating, [id]: false })
-          toast.error(t(`Failed to download folder: ${reason}`), { id: toastId })
-        })
-    }
-
     // Folder layout component props
     const folderProps = {
       toast,
       path,
-      folderChildren,
-      selected,
-      toggleItemSelected,
-      totalSelected,
-      toggleTotalSelected,
-      totalGenerating,
-      handleSelectedDownload,
-      folderGenerating,
-      handleSelectedPermalink,
-      handleFolderDownload,
+      folderChildren
     }
 
     return (
       <>
         <Toaster />
 
-        {videoFile && <VideoPlayer { ...folderProps } file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
-        {!videoFile && audioFile && <AudioPlayer { ...folderProps } file={audioFile as OdFileObject} />}
-        {(videoFile || audioFile) && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
         {readmeFile && <ReadMePreview  { ...folderProps } file={readmeFile as OdFileObject} />}
-        {descFile && <DescriptionPreview  { ...folderProps } file={descFile as OdFileObject} />}
-
-        {!videoFile && (<FolderListLayout {...folderProps} videoList={videoList}/>)}
-
-        {(!videoFile && !onlyOnePage) && (
+        <FolderListLayout {...folderProps} videoList={videoList}/>
+        
+        {!onlyOnePage && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
             <div className="border-b border-gray-200 p-3 text-center font-mono text-sm text-gray-400 dark:border-gray-700">
               {t('- showing {{count}} page(s) ', {
@@ -545,9 +345,11 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     )
   }
 
+  const code = data[0]?.status
+  const message = data[0]?.error ?? error ?? ''
   return (
     <PreviewContainer>
-      <FourOhFour errorMsg={t('Cannot preview {{path}}', { path })} />
+      <FourOhFour code={code} message={message} />
     </PreviewContainer>
   )
 }

@@ -5,6 +5,8 @@ import siteConfig from '../../config/site.config'
 import Navbar from '../components/Navbar'
 import FileListing from '../components/FileListing'
 import Footer from '../components/Footer'
+import useLocalStorage from '../utils/useLocalStorage'
+import { useEffect } from 'react'
 
 export default function Home() {
   return (
@@ -25,10 +27,11 @@ export default function Home() {
   )
 }
 
-export async function getServerSideProps({ locale }) {
+export async function getServerSideProps(ctx) {
   return {
     props: {
-      ...(await serverSideTranslations(locale, ['common'])),
+      referrer: ctx.res.getHeader('referrer') || '',
+      ...(await serverSideTranslations(ctx.locale, ['common'])),
     },
   }
 }

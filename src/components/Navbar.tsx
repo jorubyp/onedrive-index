@@ -1,12 +1,10 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { IconName, IconPrefix } from '@fortawesome/fontawesome-svg-core'
 import { Dialog, Transition } from '@headlessui/react'
 import toast, { Toaster } from 'react-hot-toast'
 import { useHotkeys } from 'react-hotkeys-hook'
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useRouter } from 'next/router'
 import { Fragment, useEffect, useState } from 'react'
 import { useTranslation } from 'next-i18next'
 
@@ -14,13 +12,15 @@ import siteConfig from '../../config/site.config'
 import SearchModal from './SearchModal'
 import useDeviceOS from '../utils/useDeviceOS'
 import Breadcrumb from './Breadcrumb'
+import { getIncludeMembers } from '../utils/protectedRouteHandler'
+import { useRouter } from 'next/router'
 
 const Navbar = () => {
   const router = useRouter()
   const { asPath } = router
   const os = useDeviceOS()
 
-  const [tokenPresent, setTokenPresent] = useState(false)
+  const [icon, setIcon] = useState('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=')
   const [isOpen, setIsOpen] = useState(false)
 
   const [searchOpen, setSearchOpen] = useState(false)
@@ -32,15 +32,7 @@ const Navbar = () => {
   })
 
   useEffect(() => {
-    const storedToken = () => {
-      for (const r of siteConfig.protectedRoutes) {
-        if (localStorage.hasOwnProperty(r)) {
-          return true
-        }
-      }
-      return false
-    }
-    setTokenPresent(storedToken())
+    setIcon(getIncludeMembers() ? siteConfig.icon_pirate : siteConfig.icon)
   }, [])
 
   const { t } = useTranslation()
@@ -58,24 +50,11 @@ const Navbar = () => {
     }, 1000)
   }
 
-  const icon = siteConfig.icon;
   let IconComponent;
   let iconProps = {};
 
-  if (icon.startsWith('/')) {
-    // If the icon is a URL, use the Image component
-    IconComponent = Image;
-    iconProps = { src: icon, alt: 'icon', width: '25', height: '25', priority: true };
-  } else {
-    // If the icon is a FontAwesome icon name, use the FontAwesomeIcon component
-    if (!icon.includes('-')) {
-      throw new Error('To use FontAwesomIcon as logo must include IconPrefix and IconName, separated by a dash `-`.');
-    }
-    IconComponent = FontAwesomeIcon;
-    const iconPrefix = icon.substring(0, icon.indexOf('-')).toLowerCase() as IconPrefix;
-    const iconName = icon.substring(icon.indexOf('-') + 1).toLowerCase() as IconName;
-    iconProps = { icon: [iconPrefix, iconName] };
-  }
+  IconComponent = Image;
+  iconProps = { src: icon, alt: 'icon', width: '25', height: '25', priority: true };
   
   return (
     <div className="sticky top-0 z-[100] border-b border-gray-900/10 bg-white bg-opacity-80 backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">

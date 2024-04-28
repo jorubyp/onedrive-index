@@ -3,8 +3,10 @@ import { useRouter } from 'next/router'
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations'
 
 import Navbar from '../components/Navbar'
-import FileListing, { queryToPath } from '../components/FileListing'
+import FileListing from '../components/FileListing'
 import Footer from '../components/Footer'
+import { useEffect } from 'react'
+import useLocalStorage from '../utils/useLocalStorage'
 
 const escape_chars = [
   ["<", "＜"],
@@ -53,10 +55,11 @@ export default function Folders() {
   )
 }
 
-export async function getServerSideProps({ locale }) {
+export async function getServerSideProps(ctx) {
   return {
     props: {
-      ...(await serverSideTranslations(locale, ['common'])),
+      referrer: ctx.res.getHeader('referrer') || '',
+      ...(await serverSideTranslations(ctx.locale, ['common'])),
     },
   }
 }

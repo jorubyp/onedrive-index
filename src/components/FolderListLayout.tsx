@@ -1,4 +1,4 @@
-import type { OdFolderChildren } from '../types'
+import type { OdDriveItem, OdFolderChildren } from '../types'
 
 import Link from 'next/link'
 import { FC } from 'react'
@@ -24,19 +24,23 @@ const FolderListLayout = ({
   videoList
 }) => (
   <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
-    {folderChildren.filter((c: OdFolderChildren) => c.name !== "System Volume Information").map((c: OdFolderChildren, i) => (
-      <div
-        className={`group transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850${videoList && i === 0 ? ' animate-new-flash rounded-t' : ''}`}
-        key={c.id}
-      >
-        <Link
-          href={`${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}
-          passHref
+    {folderChildren.filter((c: OdFolderChildren) => c.name !== "System Volume Information").map((c: OdFolderChildren, i) => { 
+      const videoIdRegexp = / \((?<videoId>[^\)]+)\)$/
+      const { videoId } = c.name.match(videoIdRegexp)?.groups || {}
+      return (
+        <div
+          className={`group transition-all duration-100 hover:bg-gray-100 dark:hover:bg-gray-850${videoList && i === 0 ? ' animate-new-flash rounded-t' : ''}`}
+          key={c.id}
         >
-          <FileListItem fileContent={c} />
-        </Link>
-      </div>
-    ))}
+          <Link
+            href={videoId ? `/watch?v=${encodeURIComponent(videoId)}` : `${path === '/' ? '' : path}/${encodeURIComponent(c.name)}`}
+            passHref
+          >
+            <FileListItem fileContent={c} />
+          </Link>
+        </div>
+      )
+    })}
   </div>
 )
 

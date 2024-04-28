@@ -127,10 +127,10 @@ export default function OAuthStep1({ clientId, clientSecret }) {
                   </tr>
                   <tr className="border-y bg-white dark:border-gray-700 dark:bg-gray-900">
                     <td className="bg-gray-50 py-1 px-3 text-left text-xs font-medium uppercase tracking-wider text-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                      Drive API URL
+                      Graph API URL
                     </td>
                     <td className="whitespace-nowrap py-1 px-3 text-gray-500 dark:text-gray-400">
-                      <code className="font-mono text-sm">{apiConfig.driveApi}</code>
+                      <code className="font-mono text-sm">{apiConfig.graphApi}</code>
                     </td>
                   </tr>
                   <tr className="border-y bg-white dark:border-gray-700 dark:bg-gray-900">

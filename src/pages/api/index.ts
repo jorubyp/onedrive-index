@@ -6,9 +6,13 @@ import axios from 'axios'
 import apiConfig from '../../../config/api.config'
 import siteConfig from '../../../config/site.config'
 import { revealObfuscatedToken } from '../../utils/oAuthHandler'
-import { compareHashedToken } from '../../utils/protectedRouteHandler'
 import { getOdAuthTokens, storeOdAuthTokens } from '../../utils/odAuthTokenStore'
 import { runCorsMiddleware } from './raw'
+import { OdFileObject, OdFolderChildren } from '../../types'
+import { drivesRequest, thumbnailsRequest } from '../../utils/graphApi'
+
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 const basePath = pathPosix.resolve('/', process.env.BASE_DIRECTORY || '/')
 const clientId = process.env.CLIENT_ID || ''
@@ -25,12 +29,13 @@ export function encodePath(path: string): string {
   if (encodedPath === '/' || encodedPath === '') {
     return ''
   }
-  encodedPath = encodedPath.replace(/\/$/, '')
-  return `:${encodeURIComponent(encodedPath)}`
+  encodedPath = encodedPath
+    .split('/')
+    .map(s => encodeURIComponent(s))
+    .filter(s => s)
+    .join('/')
+  return `:/${encodedPath}`
 }
-
-
-
 
 /**
  * Fetch the access token from Redis storage and check if the token requires a renew
@@ -38,15 +43,13 @@ export function encodePath(path: string): string {
  * @returns Access token for OneDrive API
  */
 export async function getAccessToken(): Promise<string> {
-  const { accessToken } = await getOdAuthTokens()
+  const { accessToken, refreshToken } = await getOdAuthTokens()
 
   // Return in storage access token if it is still valid
   if (typeof accessToken === 'string') {
     console.log('Fetch access token from storage.')
     return accessToken
   }
-
-  const { refreshToken } = await getOdAuthTokens()
 
   // Return empty string if no refresh token is stored, which requires the application to be re-authenticated
   if (typeof refreshToken !== 'string') {
@@ -82,86 +85,6 @@ export async function getAccessToken(): Promise<string> {
   return ''
 }
 
-/**
- * Match protected routes in site config to get path to required auth token
- * @param path Path cleaned in advance
- * @returns Path to required auth token. If not required, return empty string.
- */
-export function getAuthTokenPath(path: string) {
-  // Ensure trailing slashes to compare paths component by component. Same for protectedRoutes.
-  // Since OneDrive ignores case, lower case before comparing. Same for protectedRoutes.
-  path = path.toLowerCase() + '/'
-  const protectedRoutes = siteConfig.protectedRoutes as string[]
-  let authTokenPath = ''
-  for (let r of protectedRoutes) {
-    if (typeof r !== 'string') continue
-    r = r.toLowerCase().replace(/\/$/, '') + '/'
-    if (path.startsWith(r)) {
-      authTokenPath = `${r}.password`
-      break
-    }
-  }
-  return authTokenPath
-}
-
-/**
- * Handles protected route authentication:
- * - Match the cleanPath against an array of user defined protected routes
- * - If a match is found:
- * - 1. Download the .password file stored inside the protected route and parse its contents
- * - 2. Check if the od-protected-token header is present in the request
- * - The request is continued only if these two contents are exactly the same
- *
- * @param cleanPath Sanitised directory path, used for matching whether route is protected
- * @param accessToken OneDrive API access token
- * @param req Next.js request object
- * @param res Next.js response object
- */
-export async function checkAuthRoute(
-  cleanPath: string,
-  accessToken: string,
-  odTokenHeader: string
-): Promise<{ code: 200 | 401 | 404 | 500; message: string }> {
-  // Handle authentication through .password
-  const authTokenPath = getAuthTokenPath(cleanPath)
-
-  // Fetch password from remote file content
-  if (authTokenPath === '') {
-    return { code: 200, message: '' }
-  }
-
-  try {
-    const token = await axios.get(`${apiConfig.driveApi}/root${encodePath(authTokenPath)}`, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      params: {
-        select: '@microsoft.graph.downloadUrl,file',
-      },
-    })
-
-    // Handle request and check for header 'od-protected-token'
-    const odProtectedToken = await axios.get(token.data['@microsoft.graph.downloadUrl'])
-    // console.log(odTokenHeader, odProtectedToken.data.trim())
-
-    if (
-      !compareHashedToken({
-        odTokenHeader: odTokenHeader,
-        dotPassword: odProtectedToken.data.toString(),
-      })
-    ) {
-      return { code: 401, message: 'Password required.' }
-    }
-  } catch (error: any) {
-    // Password file not found, fallback to 404
-    if (error?.response?.status === 404) {
-      return { code: 404, message: "You didn't set a password." }
-    } else {
-      return { code: 500, message: 'Internal server error.' }
-    }
-  }
-
-  return { code: 200, message: 'Authenticated.' }
-}
-
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // If method is POST, then the API is called by the client to store acquired tokens
   if (req.method === 'POST') {
@@ -180,11 +103,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // If method is GET, then the API is a normal request to the OneDrive API for files or folders
-  const { path = '/', raw = false, next = '', sort = '' } = req.query
+  let { path = '/', raw = false, next = '', sort = '', members = 'false' } = req.query
 
   // Set edge function caching for faster load times, check docs:
   // https://vercel.com/docs/concepts/functions/edge-caching
   res.setHeader('Cache-Control', apiConfig.cacheControlHeader)
+
+  const includeMembers: boolean = JSON.parse(members as string)
 
   // Sometimes the path parameter is defaulted to '[...path]' which we need to handle
   if (path === '[...path]') {
@@ -213,24 +138,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  // Handle protected routes authentication
-  const { code, message } = await checkAuthRoute(cleanPath, accessToken, req.headers['od-protected-token'] as string)
-  // Status code other than 200 means user has not authenticated yet
-  if (code !== 200) {
-    res.status(code).json({ error: message })
-    return
-  }
-  // If message is empty, then the path is not protected.
-  // Conversely, protected routes are not allowed to serve from cache.
-  if (message !== '') {
-    res.setHeader('Cache-Control', 'no-cache')
-  }
-
-  const requestPath = encodePath(cleanPath)
+  const encodedPath = encodePath(cleanPath)
   // Handle response from OneDrive API
-  const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
+  const requestPath = `/root${encodedPath}`
   // Whether path is root, which requires some special treatment
-  const isRoot = requestPath === ''
+  const isRoot = encodedPath === ''
 
   // Go for file raw download link, add CORS headers, and redirect to @microsoft.graph.downloadUrl
   // (kept here for backwards compatibility, and cache headers will be reverted to no-cache)
@@ -238,61 +150,122 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await runCorsMiddleware(req, res)
     res.setHeader('Cache-Control', 'no-cache')
 
-    const { data } = await axios.get(requestUrl, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    const { datas: rawObjects } = await drivesRequest({
+      path: requestPath,
       params: {
         // OneDrive international version fails when only selecting the downloadUrl (what a stupid bug)
         select: 'id,@microsoft.graph.downloadUrl',
       },
+      accessToken,
+      includeMembers, 
     })
-
-    if ('@microsoft.graph.downloadUrl' in data) {
-      res.redirect(data['@microsoft.graph.downloadUrl'])
-    } else {
-      res.status(404).json({ error: 'No download url found.' })
+    for (const folderObject of rawObjects) {
+      if ('@microsoft.graph.downloadUrl' in folderObject) {
+        res.redirect(folderObject['@microsoft.graph.downloadUrl'])
+        return
+      }
     }
+    res.status(404).json({ error: 'No download url found.' })
     return
   }
 
   // Querying current path identity (file or folder) and follow up query childrens in folder
   try {
-    const { data: identityData } = await axios.get(requestUrl, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    const folders: OdFolderChildren[] = []
+    const files: OdFileObject[] = []
+    const pageTokens: string[] = []
+    const responseErrors: any[] = []
+
+    const { datas: fileObjects, errors: fileErrors } = await drivesRequest({
+      path: requestPath,
       params: {
-        select: 'name,size,id,lastModifiedDateTime,folder,file,video,image',
+        select: 'name,size,id,lastModifiedDateTime,folder,file,video,image,parentReference'
       },
+      accessToken,
+      includeMembers, 
     })
 
-    if ('folder' in identityData) {
-      const { data: folderData } = await axios.get(`${requestUrl}${isRoot ? '' : ':'}/children`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-        params: {
-          ...{
-            select: 'name,size,id,lastModifiedDateTime,folder,file,video,image',
-            $top: siteConfig.maxItems,
-          },
-          ...(next ? { $skipToken: next } : {}),
-          ...(sort ? { $orderby: sort } : {}),
-        },
-      })
+    responseErrors.push(...fileErrors)
 
-      // Extract next page token from full @odata.nextLink
-      const nextPage = folderData['@odata.nextLink']
-        ? folderData['@odata.nextLink'].match(/&\$skiptoken=(.+)/i)[1]
-        : null
-
-      // Return paging token if specified
-      if (nextPage) {
-        res.status(200).json({ folder: folderData, next: nextPage })
-      } else {
-        res.status(200).json({ folder: folderData })
+    for (const fileObject of fileObjects) {
+      if ((fileObject as unknown as OdFolderChildren).file) {
+        res.status(200).json({ file: fileObject })
+        return
       }
+    }
+    
+    const { datas: folderObjects, values: folderChildren, errors: folderErrors } = await drivesRequest({
+      path: `${requestPath}${isRoot ? '' : ':'}/children`,
+      params: {
+        select: 'name,size,id,lastModifiedDateTime,folder,file,video,image,parentReference',
+        $top: siteConfig.maxItems,
+        ...(next ? { $skipToken: next } : {}),
+        ...(sort ? { $orderby: sort } : {}),
+      },
+      accessToken,
+      includeMembers,
+    })
+    
+    responseErrors.push(...folderErrors)
+
+    for (const folderObject of folderObjects) {
+      // Extract next page token from full @odata.nextLink
+      if (typeof folderObject['@odata.nextLink'] === 'string') {
+        const tokenMatch = folderObject['@odata.nextLink'].match(/&\$skiptoken=(.+)/i)
+        if (tokenMatch) {
+          pageTokens.push(tokenMatch[1])
+        }
+      }
+    }
+
+    // Merge drive contents
+    for (const newChild of folderChildren) {
+      if (newChild.folder) {
+        const existingChild = folders.find(({ name }) => name === newChild.name)
+        if (existingChild?.folder) {
+            // Multiple folders exist at this path, present them as one folder.
+            // Important Note: ID property for merged folders will be the first found. This works
+            // for now as existing functions don't depend on them being accurate, only unique.
+
+            // Combine child count
+            existingChild.folder.childCount += newChild.folder.childCount
+            //Combine total sizes
+            existingChild.size += newChild.size
+            //Use latest modified date
+            existingChild.lastModifiedDateTime = new Date(Math.max(
+              new Date(existingChild.lastModifiedDateTime).getTime(),
+              new Date(newChild.lastModifiedDateTime).getTime()
+            )).toISOString().slice(0,-5)+"Z"
+            continue
+        }
+        folders.push(newChild)
+      } else {
+        files.push(newChild)
+      }
+    }
+    // Batch request thumbnail urls for children that are not folders
+    const thumbnailUrls = await thumbnailsRequest(files, accessToken)
+    for (let i = 0; i < thumbnailUrls.length; i++) {
+      files[i].thumbnailUrl = thumbnailUrls[i]
+    }
+
+    const parsedChildren: OdFolderChildren[] = [ ... folders, ...files ]
+    if (parsedChildren.length) {
+      parsedChildren.sort((a, b) => a.name.localeCompare(b.name))
+      if (pageTokens.length) {
+        res.status(200).json({ folder: { value: parsedChildren }, next: pageTokens[0] })
+        return
+      }
+      res.status(200).json({ folder: { value: parsedChildren } })
+      return
+    } else if (responseErrors.length) {
+      res.status(responseErrors[0].code).json({ error: responseErrors[0].message })
       return
     }
-    res.status(200).json({ file: identityData })
-    return
   } catch (error: any) {
-    res.status(error?.response?.code ?? 500).json({ error: error?.response?.data ?? 'Internal server error.' })
+    res.status(500).json({ error: 'Internal server error.' })
     return
   }
+  res.status(200).json({ folder: { value: [] } })
+  return
 }

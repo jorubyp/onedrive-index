@@ -4,8 +4,8 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import axios, { AxiosResponseHeaders } from 'axios'
 import Cors from 'cors'
 
-import { driveApi, cacheControlHeader } from '../../../config/api.config'
-import { encodePath, getAccessToken, checkAuthRoute } from '.'
+import { graphApi, cacheControlHeader } from '../../../config/api.config'
+import { encodePath, getAccessToken } from '.'
 
 // CORS middleware for raw links: https://nextjs.org/docs/api-routes/api-middlewares
 export function runCorsMiddleware(req: NextApiRequest, res: NextApiResponse) {
@@ -28,11 +28,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return
   }
 
-  const { path = '/', odpt = '', proxy = false } = req.query
+  const { path, driveId, odpt = '', proxy = false } = req.query
 
   // Sometimes the path parameter is defaulted to '[...path]' which we need to handle
   if (path === '[...path]') {
     res.status(400).json({ error: 'No path specified.' })
+    return
+  }
+  // If the drivedId is not a valid driveId, return 400
+  if (typeof driveId !== 'string') {
+    res.status(400).json({ error: 'Drive query invalid.' })
     return
   }
   // If the path is not a valid path, return 400
@@ -42,25 +47,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
   const cleanPath = pathPosix.resolve('/', pathPosix.normalize(path))
 
-  // Handle protected routes authentication
-  const odTokenHeader = (req.headers['od-protected-token'] ?? odpt) as string
-
-  const { code, message } = await checkAuthRoute(cleanPath, accessToken, odTokenHeader)
-  // Status code other than 200 means user has not authenticated yet
-  if (code !== 200) {
-    res.status(code).json({ error: message })
-    return
-  }
-  // If message is empty, then the path is not protected.
-  // Conversely, protected routes are not allowed to serve from cache.
-  if (message !== '') {
-    res.setHeader('Cache-Control', 'no-cache')
-  }
-
   await runCorsMiddleware(req, res)
   try {
     // Handle response from OneDrive API
-    const requestUrl = `${driveApi}/root${encodePath(cleanPath)}`
+    const requestUrl = `${graphApi}/drives/${driveId}/root${encodePath(cleanPath)}`
     const { data } = await axios.get(requestUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
       params: {

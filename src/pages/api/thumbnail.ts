@@ -5,7 +5,7 @@ import { posix as pathPosix } from 'path'
 import axios from 'axios'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
-import { checkAuthRoute, encodePath, getAccessToken } from '.'
+import { encodePath, getAccessToken } from '.'
 import apiConfig from '../../../config/api.config'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -16,7 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Get item thumbnails by its path since we will later check if it is protected
-  const { path = '', size = 'medium', odpt = '' } = req.query
+  const { path, driveId , size = 'medium', odpt = '' } = req.query
 
   // Set edge function caching for faster load times, if route is not protected, check docs:
   // https://vercel.com/docs/concepts/functions/edge-caching
@@ -32,28 +32,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(400).json({ error: 'No path specified.' })
     return
   }
+  // If the driveId is not a valid padriveIdth, return 400
+  if (typeof driveId !== 'string') {
+    res.status(400).json({ error: 'driveId query invalid.' })
+    return
+  }
   // If the path is not a valid path, return 400
-  if (typeof path !== 'string') {
+  if (typeof path !== 'string' ) {
     res.status(400).json({ error: 'Path query invalid.' })
     return
   }
   const cleanPath = pathPosix.resolve('/', pathPosix.normalize(path))
 
-  const { code, message } = await checkAuthRoute(cleanPath, accessToken, odpt as string)
-  // Status code other than 200 means user has not authenticated yet
-  if (code !== 200) {
-    res.status(code).json({ error: message })
-    return
-  }
-  // If message is empty, then the path is not protected.
-  // Conversely, protected routes are not allowed to serve from cache.
-  if (message !== '') {
-    res.setHeader('Cache-Control', 'no-cache')
-  }
-
   const requestPath = encodePath(cleanPath)
   // Handle response from OneDrive API
-  const requestUrl = `${apiConfig.driveApi}/root${requestPath}`
+  const requestUrl = `${apiConfig.graphApi}/drives/${driveId}/root${requestPath}`
   // Whether path is root, which requires some special treatment
   const isRoot = requestPath === ''
 
