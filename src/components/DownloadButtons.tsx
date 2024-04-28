@@ -170,30 +170,30 @@ const FolderListDownloadButtons: FC<{
     } | undefined
   }
 
-  const videoPair = {
+  const videoPair = videoFile && {
     file: videoFile,
     details: GetFileDetails(videoFile)
   }
 
   const audioFile = folderChildren.filter(c => types['Audio Only'].includes(getExtension(c.name)))[0] as OdFileObject
 
-  const audioPair = {
+  const audioPair = audioFile && {
     file: audioFile,
     details: GetFileDetails(audioFile)
   } as FilePair
 
-  const subFiles = folderChildren.filter(c => ![videoFile.id, audioFile.id].includes(c.id))
+  const subFiles = folderChildren.filter(c => ![videoFile?.id, audioFile?.id].includes(c.id))
     .map(c => ({
       file: c as OdFileObject,
       details: GetFileDetails(c as OdFileObject)
     } as FilePair))
 
-  const allFiles = [videoPair, audioPair, ...subFiles]
+  const allFiles = [videoPair, audioPair, ...subFiles].filter(x => x)
 
   return (
     <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
       <div className="mb-2 flex flex-wrap justify-center gap-2">
-        {videoPair.details &&
+        {videoPair?.details &&
           <DownloadButton
             onClickCallback={() => downloadFiles([ videoPair ])}
             btnColor={videoPair.details["color"]}
@@ -202,7 +202,7 @@ const FolderListDownloadButtons: FC<{
             btnTitle={`Download ${videoPair.details["fileType"]} (${humanFileSize(videoFile.size)})`}
           />
         }
-        {audioPair.details &&
+        {audioPair?.details &&
           <DownloadButton
             onClickCallback={() => downloadFiles([ audioPair ])}
             btnColor={audioPair.details["color"]}
