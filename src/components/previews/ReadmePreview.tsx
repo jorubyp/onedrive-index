@@ -14,21 +14,21 @@ import 'katex/dist/katex.min.css'
 import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
 import { LoadingIcon } from '../Loading'
+import { OdDriveItem, OdFileObject } from '../../types'
 import { GetPlatformFromID, PlatformIcon } from '../FileListing'
-import { OdDriveItem } from '../../types'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
 }
 
 const MarkdownPreview: FC<{
-  file: any
-  path: string
-}> = ({ file, path }) => {
+  file: OdFileObject
+}> = ({ file }) => {
   // The parent folder of the markdown file, which is also the relative image folder
-  const parentPath = path
+  const pathArray = file.path?.split('/')
+  const parentPath = pathArray ? pathArray.slice(0, -1).join('/') : ''
 
-  const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"], path)
+  const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"] ?? '', '')
   const { t } = useTranslation()
 
   // Check if the image is relative path instead of a absolute url

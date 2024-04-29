@@ -237,7 +237,7 @@ export const Downloading: FC<{ title: string; style: string }> = ({ title, style
 }
 
 const ReadMePreview = React.memo<{ file: OdFileObject, path: string }>(function ReadMePreview({ file, path }) {
-  return <ReadmePreview file={file} path={path} />;
+  return <ReadmePreview file={file} />;
 });
 
 const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {

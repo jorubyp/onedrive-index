@@ -21,16 +21,19 @@ export type OdFolderObject = {
 export type OdFolderChildren = OdFolderObject['value'][number]
 // A file object returned from the OneDrive API. This object may contain 'video' if the file is a video.
 export type OdFileObject = {
+  "@microsoft.graph.downloadUrl"?: string
   '@odata.context': string
   name: string
   size: number
   id: string
   lastModifiedDateTime: string
+  path?: string
   file: { mimeType: string; hashes: { quickXorHash: string; sha1Hash?: string; sha256Hash?: string } }
   thumbnailUrl?: string // Not returned by the OneDrive API
                         // set in api/index.js to batch request them instead of indiviually in components
   image?: OdImageFile
   video?: OdVideoFile
+  content?: string
 }
 // A representation of a OneDrive image file. Some images do not return a width and height, so types are optional.
 export type OdImageFile = {
@@ -39,7 +42,6 @@ export type OdImageFile = {
 }
 // A representation of a OneDrive video file. All fields are declared here, but we mainly use 'width' and 'height'.
 export type OdVideoFile = {
-  "@microsoft.graph.downloadUrl"?: string
   width: number
   height: number
   duration: number
@@ -78,4 +80,25 @@ export type OdDriveItem = {
     id: string;
     path: string
   }
+}
+
+export type WatchFiles = {
+  readme?: OdFileObject,
+  desc?: OdFileObject,
+  video?: OdFileObject,
+  audio?: OdFileObject,
+  thumb?: OdFileObject,
+  subs?: OdFileObject,
+  meta?: OdFileObject,
+  chat?: OdFileObject,
+}
+
+export type EmbedData = {
+  title: string,
+  shortDescription: string,
+  url: string,
+  description?: string,
+  thumb?: string,
+  video?: string,
+  audio?: string,
 }

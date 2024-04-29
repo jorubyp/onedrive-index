@@ -73,9 +73,7 @@ const VideoPlayer: FC<{
   return <Plyr id="plyr" source={plyrSource as Plyr.SourceInfo} options={plyrOptions} />
 }
 
-const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined, subsFile: OdFileObject | undefined, path: string}> = ({ file, thumbFile, subsFile, path }) => {
-  let { asPath } = useRouter()
-  asPath = path + `/${encodeURIComponent(file.name)}`
+const VideoPreview: FC<{ file: OdFileObject, thumbFile?: OdFileObject, subsFile?: OdFileObject }> = ({ file, thumbFile, subsFile }) => {
   
   const { t } = useTranslation()
 
@@ -86,8 +84,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   const subtitle = subsFile && subsFile["@microsoft.graph.downloadUrl"]
 
   // We also format the raw video file for the in-browser player as well as all other players
-  const videoUrl = file["@microsoft.graph.downloadUrl"]
-
+  const video = file["@microsoft.graph.downloadUrl"]
   const isFlv = getExtension(file.name) === 'flv'
   const {
     loading,
@@ -108,7 +105,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
       ) : (
         <VideoPlayer
           videoName={file.name}
-          videoUrl={videoUrl}
+          videoUrl={video ?? ''}
           width={file.video?.width}
           height={file.video?.height}
           thumbnail={thumbnail ?? ''}

@@ -1,4 +1,4 @@
-import type { OdDriveItem, OdFileObject, OdFolderChildren } from '../types'
+import type { OdDriveItem, OdFileObject, WatchFiles } from '../types'
 
 import { FC, MouseEventHandler } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -117,44 +117,51 @@ const GetFileDetails = (file: OdFileObject) => {
   }
 }
 
-const FolderListDownloadButtons: FC<{
-  path: string,
-  folderChildren: OdFolderChildren[],
-  toast: any,
-  videoFile: OdFileObject
+const DownloadButtons: FC<{
+  files: WatchFiles,
 }> = ({
-  path,
-  folderChildren,
-  videoFile,
+  files,
 }) => {
   const { t } = useTranslation()
   
   let totalSize = 0
-  for (let i = 0; i < folderChildren.length; i++) {
-    if (folderChildren[i].folder) continue
-    totalSize += folderChildren[i].size
+  for (const file of Object.values(files)) {
+    totalSize += file.size
+  }
+
+  const downloadAll = () => {
+    const file = Object.values(files)[0]
+    const id = (file as unknown as OdDriveItem).parentReference.id;
+    const driveId = (file as unknown as OdDriveItem).parentReference.driveId;
+    const tmpLink = document.createElement("a");
+    tmpLink.style.display = 'none';
+    document.body.appendChild(tmpLink);
+    tmpLink.setAttribute( 'href', `/api/zip?id=${id}&driveId=${driveId}`);
+    tmpLink.click();
+    document.body.removeChild(tmpLink)
   }
 
   const downloadFiles = async (files: FilePair[]) => {
     const tmpLink = document.createElement("a")
     tmpLink.style.display = 'none'
     document.body.appendChild(tmpLink)
-    for(const { file, details } of files) {
-      const driveId = (file as unknown as OdDriveItem).parentReference.driveId
-      if (details) {
-        const url = file["@microsoft.graph.downloadUrl"]
-        tmpLink.setAttribute( 'href', url );
-        tmpLink.download = `${details.fname}.${details.ext}`
-        if (details.fileType === "Metadata") {
-          const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
-          const objectUrl: string = URL.createObjectURL(blob);
-          tmpLink.href = objectUrl;
-          tmpLink.click();        
-          URL.revokeObjectURL(objectUrl);
-        } else {
-          tmpLink.click();
+    for (let i = 0; i < files.length; i++) {
+      setTimeout(({ file, details }) => {
+        if (details) {
+          const url = file["@microsoft.graph.downloadUrl"]
+          tmpLink.setAttribute( 'href', file['@microsoft.graph.downloadUrl'] ?? '' );
+          tmpLink.download = `${details.fname}.${details.ext}`
+          if (details.fileType === "Metadata") {/*
+            const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
+            const objectUrl: string = URL.createObjectURL(blob);
+            tmpLink.href = objectUrl;
+            tmpLink.click();        
+            URL.revokeObjectURL(objectUrl);*/
+          } else {
+            tmpLink.click();
+          }
         }
-      }
+      }, i*300, files[i])
     }
     document.body.removeChild(tmpLink)
   }
@@ -169,26 +176,22 @@ const FolderListDownloadButtons: FC<{
       fname: string
     } | undefined
   }
+  const { readme, video, audio, ...subFiles } = files
 
-  const videoPair = videoFile && {
-    file: videoFile,
-    details: GetFileDetails(videoFile)
+  const videoPair: FilePair | undefined = video && {
+    file: video,
+    details: GetFileDetails(video)
   }
 
-  const audioFile = folderChildren.filter(c => types['Audio Only'].includes(getExtension(c.name)))[0] as OdFileObject
+  const audioPair: FilePair | undefined = audio && {
+    file: audio,
+    details: GetFileDetails(audio)
+  }
 
-  const audioPair = audioFile && {
-    file: audioFile,
-    details: GetFileDetails(audioFile)
-  } as FilePair
+  const subPairs: FilePair[] = Object.values(subFiles)
+  .map(file => ({ file, details: GetFileDetails(file) }))
 
-  const subFiles = folderChildren.filter(c => ![videoFile?.id, audioFile?.id].includes(c.id))
-    .map(c => ({
-      file: c as OdFileObject,
-      details: GetFileDetails(c as OdFileObject)
-    } as FilePair))
-
-  const allFiles = [videoPair, audioPair, ...subFiles].filter(x => x)
+  const allFiles = [videoPair, audioPair, ...subPairs].filter(x => x)
 
   return (
     <div className="rounded-b border-gray-900/10 bg-white bg-opacity-80 p-2 shadow-sm backdrop-blur-md dark:border-gray-500/30 dark:bg-gray-900">
@@ -197,22 +200,22 @@ const FolderListDownloadButtons: FC<{
           <DownloadButton
             onClickCallback={() => downloadFiles([ videoPair ])}
             btnColor={videoPair.details["color"]}
-            btnText={`${videoPair.details["fileType"]} (${humanFileSize(videoFile.size)})`}
-            btnIcon={getFileIcon(videoFile.name, { video: Boolean(videoFile.video)})}
-            btnTitle={`Download ${videoPair.details["fileType"]} (${humanFileSize(videoFile.size)})`}
+            btnText={`${videoPair.details["fileType"]} (${humanFileSize(videoPair.file.size)})`}
+            btnIcon={getFileIcon(videoPair.file.name, { video: Boolean(videoPair.file.video)})}
+            btnTitle={`Download ${videoPair.details["fileType"]} (${humanFileSize(videoPair.file.size)})`}
           />
         }
         {audioPair?.details &&
           <DownloadButton
             onClickCallback={() => downloadFiles([ audioPair ])}
             btnColor={audioPair.details["color"]}
-            btnText={`${audioPair.details["fileType"]} (${humanFileSize(audioFile.size)})`}
-            btnIcon={getFileIcon(audioFile.name)}
-            btnTitle={`Download ${audioPair.details["fileType"]} (${humanFileSize(audioFile.size)})`}
+            btnText={`${audioPair.details["fileType"]} (${humanFileSize(audioPair.file.size)})`}
+            btnIcon={getFileIcon(audioPair.file.name)}
+            btnTitle={`Download ${audioPair.details["fileType"]} (${humanFileSize(audioPair.file.size)})`}
           />
         }
         <DownloadButton
-          onClickCallback={() => downloadFiles(allFiles)}
+          onClickCallback={downloadAll}
           btnColor="pink"
           btnText={`All Files (${humanFileSize(totalSize)})`}
           btnIcon="download"
@@ -220,7 +223,7 @@ const FolderListDownloadButtons: FC<{
         />
       </div>
       <div className="flex flex-wrap justify-center gap-2">
-        {subFiles.sort(({ file: a }, { file: b }) => {
+        {subPairs.sort(({ file: a }, { file: b }) => {
           const adet = GetFileDetails(a as OdFileObject) || { index: 99 }
           const bdet = GetFileDetails(b as OdFileObject) || { index: 99 }
           return adet["index"] > bdet["index"] ? 1 : 0
@@ -242,4 +245,4 @@ const FolderListDownloadButtons: FC<{
   )
 }
 
-export default FolderListDownloadButtons
+export default DownloadButtons

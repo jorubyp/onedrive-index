@@ -1,18 +1,13 @@
-import { useRouter } from 'next/router'
-import { useTranslation } from 'next-i18next'
-
 import useFileContent from '../../utils/fetchOnMount'
 import React from 'react'
-import { OdDriveItem } from '../../types'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>
 }
 
-const DescriptionPreview = ({ file, path }) => {
-  const { asPath } = useRouter()
+const DescriptionPreview = ({ file }) => {
 
-const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"], asPath)
+const { response: content, error, validating } = useFileContent(file["@microsoft.graph.downloadUrl"], '')
   if (error || validating || !content) {
     return (<></>)
   }

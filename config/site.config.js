@@ -13,6 +13,7 @@ module.exports = {
   icon_pirate: process.env.NEXT_PUBLIC_ICON_PIRATE || '/icons/64r.png', // or icon: '/icons/128.png', to use a image.
   
   baseDirectory: process.env.BASE_DIRECTORY || '/',
+  baseUrl: process.env.NEXT_PUBLIC_BASE_URL || '',
 
   drives_public: process.env.DRIVES_PUBLIC?.split(',') || [],
   drives_members: process.env.DRIVES_MEMBERS?.split(',') || [],

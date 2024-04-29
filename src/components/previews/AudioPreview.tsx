@@ -1,10 +1,8 @@
-import type { OdDriveItem, OdFileObject, OdFolderChildren } from '../../types'
+import type { OdFileObject } from '../../types'
 import { FC, useEffect, useRef, useState } from 'react'
 
 import ReactAudioPlayer from 'react-audio-player'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useTranslation } from 'next-i18next'
-import { useRouter } from 'next/router'
 
 import { PreviewContainer } from './Containers'
 import { LoadingIcon } from '../Loading'
@@ -16,10 +14,7 @@ enum PlayerState {
   Paused,
 }
 
-const AudioPreview: FC<{ file: OdFileObject, path: string }> = ({ file, path }) => {
-  const { t } = useTranslation()
-  let { asPath } = useRouter()
-  asPath = path + `/${encodeURIComponent(file.name)}`
+const AudioPreview: FC<{ file: OdFileObject }> = ({ file }) => {
 
   const rapRef = useRef<ReactAudioPlayer>(null)
   const [playerStatus, setPlayerStatus] = useState(PlayerState.Loading)
