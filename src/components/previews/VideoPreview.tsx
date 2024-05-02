@@ -80,7 +80,7 @@ const VideoPreview: FC<{ file: OdFileObject, thumbFile: OdFileObject | undefined
   const { t } = useTranslation()
 
   // OneDrive generates thumbnails for its video files, we pick the thumbnail with the highest resolution
-  const thumbnail = thumbFile ? thumbFile.thumbnailUrl : file.thumbnailUrl
+  const thumbnail = thumbFile ? thumbFile["@microsoft.graph.downloadUrl"] : file.thumbnailUrl
 
   // We assume subtitle files are beside the video with the same name, only webvtt '.vtt' files are supported
   const subtitle = subsFile && subsFile["@microsoft.graph.downloadUrl"]
