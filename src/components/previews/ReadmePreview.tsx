@@ -14,8 +14,8 @@ import 'katex/dist/katex.min.css'
 import useFileContent from '../../utils/fetchOnMount'
 import FourOhFour from '../FourOhFour'
 import { LoadingIcon } from '../Loading'
-import { GetPlatformFromID, PlatformIcon } from '../FileListing'
 import { OdDriveItem } from '../../types'
+import { GetPlatformFromID, PlatformIcon } from '../PlatformIcon'
 
 function PreviewContainer({ children }): JSX.Element {
   return <div className="mt-4 rounded bg-white p-3 shadow-sm dark:bg-gray-900 dark:text-white">{children}</div>

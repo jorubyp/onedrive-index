@@ -18,6 +18,7 @@ import FolderListDownloadButtons from './DownloadButtons'
 import ReadmePreview from './previews/ReadmePreview'
 import DescriptionPreview from './previews/DescriptionPreview'
 import AudioPreview from './previews/AudioPreview'
+import { GetPlatformFromID, PlatformIcon } from './PlatformIcon'
 
 /**
  * Convert url query into path string
@@ -83,35 +84,6 @@ const splitChannelFromTitle = (fileName: string) => {
   if (start && end) return {
     title: fileName.substring(0, start - 1),
     channel: fileName.substring(start, end)
-  }
-}
-
-export enum Platform {
-  youtube,
-  twitch,
-  twitter
-}
-
-export const GetPlatformFromID = ({ videoId }): Platform | undefined => {
-  if (videoId.match(/^[1-4v]\d{10}$/)) {
-    return Platform.twitch
-  } else if (videoId.match(/^[\w-]{11}$/)) {
-    return Platform.youtube
-  } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
-    return Platform.twitter
-  }
-}
-
-export const PlatformIcon: FC<{ platform: Platform | undefined}> = ({ platform }) => {
-  switch(platform) {
-    case Platform.youtube:
-      return (<FontAwesomeIcon icon={faYoutube}/>)
-    case Platform.twitch:
-      return (<FontAwesomeIcon icon={faTwitch}/>)
-    case Platform.twitter:
-      return (<FontAwesomeIcon icon={faTwitter}/>)
-    default:
-      return (<FontAwesomeIcon icon={faVideoCamera}/>)
   }
 }
 

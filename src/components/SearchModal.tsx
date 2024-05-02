@@ -14,8 +14,9 @@ import { LoadingIcon } from './Loading'
 
 import { getFileIcon } from '../utils/getFileIcon'
 import siteConfig from '../../config/site.config'
-import { ChildName, GetPlatformFromID, PlatformIcon } from './FileListing'
 import { getIncludeMembers } from '../utils/protectedRouteHandler'
+import { ChildName } from './FileListing'
+import { PlatformIcon, GetPlatformFromID } from './PlatformIcon'
 
 /**
  * Extract the searched item's path in field 'parentReference' and convert it to the
