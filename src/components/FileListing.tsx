@@ -91,8 +91,8 @@ const splitChannelFromTitle = (fileName: string) => {
 export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, breadcrumb = false}) => {
   const original = titleUnescape(formatChildName(name))
   
-  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
-  const { path, date, titlechannel, videoId } = original.match(videoIdRegexp)?.groups || {}
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+) \((?<videoId>[^\)]+)\)$/
+  const { path, date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
 
   if (path) return path.slice(1, path.length-1)
   
@@ -108,15 +108,15 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
 
   if (breadcrumb && platform !== undefined) return videoId
 
-  let { title, channel } = splitChannelFromTitle(titlechannel) || { title: titlechannel, channel: ''}
-  if (platform === undefined) title += ` (${videoId})`
+  let displayName = title
+  if (platform === undefined) displayName += ` (${videoId})`
 
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
   const slashedDate = `${year}/${month}/${day}`
   
   const unPadChars = ['「', '【', '『', '［', '（', '〈', '〔', '《', '〘', '〚']
-  const unPad = unPadChars.includes(title[0])
+  const unPad = unPadChars.includes(displayName[0])
 
   let columns: string[] = []
   if (!breadcrumb) {
@@ -127,7 +127,7 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
   return (
     <>
       <span className={`${(!breadcrumb && unPad) ? '!-ml-2 ' : ''}grow truncate`}>
-        {title}
+        {displayName}
       </span>
       <span className={'font-mono pl-0.5 float-right font-medium flex gap-x-5 text-gray-750 group-hover:text-gray-700'}>
         {columns.map((s, i) => <><span className={columns.length > 1 && i === 0 ? 'md:block hidden' : ''}>{s}</span></>)}
