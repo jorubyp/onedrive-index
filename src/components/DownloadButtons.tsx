@@ -139,22 +139,17 @@ const FolderListDownloadButtons: FC<{
     const tmpLink = document.createElement("a")
     tmpLink.style.display = 'none'
     document.body.appendChild(tmpLink)
-    for(const { file, details } of files) {
-      const driveId = (file as unknown as OdDriveItem).parentReference.driveId
-      if (details) {
-        const url = file["@microsoft.graph.downloadUrl"]
-        tmpLink.setAttribute( 'href', url );
-        tmpLink.download = `${details.fname}.${details.ext}`
-        if (details.fileType === "Metadata") {
+    for(let i = 0; i < files.length; i++) {
+      setTimeout(async () => {
+        let url = files[i].file["@microsoft.graph.downloadUrl"]
+        if (files[i].details?.fileType === "Metadata") {
           const blob: Blob = new Blob([await fetch(url).then(r => r.blob())], {type: 'application/json'});
-          const objectUrl: string = URL.createObjectURL(blob);
-          tmpLink.href = objectUrl;
-          tmpLink.click();        
-          URL.revokeObjectURL(objectUrl);
-        } else {
-          tmpLink.click();
+          url = URL.createObjectURL(blob);
         }
-      }
+        tmpLink.setAttribute( 'href', url );
+        tmpLink.download = `${files[i].details?.fname}.${files[i].details?.ext}`
+        tmpLink.click();
+      }, i*333)
     }
     document.body.removeChild(tmpLink)
   }
