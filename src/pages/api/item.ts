@@ -22,7 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       const { data } = await axios.get(itemApi, {
         headers: { Authorization: `Bearer ${accessToken}` },
         params: {
-          select: 'id,name,parentReference',
+          select: 'id,name,parentReference,webUrl',
         },
       })
       res.status(200).json(data)

@@ -3,11 +3,12 @@ import { posix as pathPosix } from 'path'
 import type { NextApiRequest, NextApiResponse } from 'next'
 
 import apiConfig from '../../../config/api.config'
-import { baseDirectory } from '../../../config/site.config'
+import siteConfig, { baseDirectory } from '../../../config/site.config'
 import { OdDriveItem, OdFileObject } from '../../types'
 import { drivesRequest, thumbnailsRequest } from '../../utils/graphApi'
 import { encodePath, getAccessToken } from '.'
 import { sanitiseQuery } from './search'
+import axios from 'axios'
 
 function mapAbsolutePath(path: string): string {
   // path is in the format of '/drive/root:/path/to/file', if baseDirectory is '/' then we split on 'root:',
@@ -27,24 +28,36 @@ const folderFromVideoId = async (videoId: any, includeMembers: boolean, accessTo
   driveId: string | null,
   error: any
 }> => {
-  const searchPath = `/root/search(q='${sanitiseQuery(videoId)}')`
+  try {
+    const searchPath = `/root/search(q='${sanitiseQuery(videoId)}')`
 
-  const { values, errors } = await drivesRequest({
-    path: searchPath,
-    params: {
-      select: 'webUrl,name,folder,parentReference',
-    },
-    accessToken,
-    includeMembers
-  })
-  
-  let folder = values.find(item => item.folder && item.name.endsWith(`(${videoId})`))
-  if (folder) {
-    const path = mapAbsolutePath(folder["webUrl"])
-    const driveId = (folder as OdDriveItem).parentReference.driveId
-    return { path, driveId, error: null }
-  } else if (errors.length) {
-    return { path: null, driveId: null, error: errors[0]}
+    const { values, errors } = await drivesRequest({
+      path: searchPath,
+      params: {
+        select: 'name,folder,parentReference,id,webUrl',
+      },
+      accessToken,
+      includeMembers
+    })
+    const result = values.find(item => item.name.indexOf(`(${videoId})`) > -1)
+    if (result) {
+      const driveId = (result as OdDriveItem).parentReference.driveId
+      let webUrl;
+      if (result.folder) {
+        webUrl = result["webUrl"]
+        console.log(webUrl)
+      } else {
+        const id = (result as OdDriveItem).parentReference.id;
+        ({ data: { webUrl } } = await axios.get(`${siteConfig.baseUrl}/api/item/?id=${id}&driveId=${driveId}`))
+        console.log(webUrl)
+      }
+      const path = mapAbsolutePath(webUrl)
+      return { path, driveId, error: null }
+    } else if (errors.length) {
+      return { path: null, driveId: null, error: errors[0]}
+    }
+  } catch {
+    //
   }
   return { path: null, driveId: null, error: 'Not found'}
 }
