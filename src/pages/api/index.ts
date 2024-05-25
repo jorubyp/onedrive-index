@@ -8,7 +8,7 @@ import siteConfig from '../../../config/site.config'
 import { revealObfuscatedToken } from '../../utils/oAuthHandler'
 import { getOdAuthTokens, storeOdAuthTokens } from '../../utils/odAuthTokenStore'
 import { runCorsMiddleware } from './raw'
-import { OdFileObject, OdFolderChildren } from '../../types'
+import { OdDriveItem, OdFileObject, OdFolderChildren } from '../../types'
 import { drivesRequest, thumbnailsRequest } from '../../utils/graphApi'
 
 export const fetchCache = 'force-no-store';
@@ -220,6 +220,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Merge drive contents
     for (const newChild of folderChildren) {
+      const driveId = (newChild as OdDriveItem).parentReference.driveId
+      if (siteConfig.drives_members.includes(driveId)) {
+        (newChild as OdDriveItem).members = true
+      }
       if (newChild.folder) {
         const existingChild = folders.find(({ name }) => name === newChild.name)
         if (existingChild?.folder) {

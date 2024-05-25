@@ -1,4 +1,4 @@
-import type { OdFileObject, OdFolderChildren, OdFolderObject } from '../types'
+import type { OdDriveItem, OdFileObject, OdFolderChildren, OdFolderObject } from '../types'
 import { ParsedUrlQuery } from 'querystring'
 import { FC, MouseEventHandler, useEffect, useRef, useState } from 'react'
 import { faYoutube, faTwitch, faTwitter } from '@fortawesome/free-brands-svg-icons'
@@ -142,7 +142,35 @@ export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
   const { videoId } = child.name.match(videoIdRegexp)?.groups || {}
   if (videoId) {
     const platform = GetPlatformFromID({ videoId })
-    return PlatformIcon({ platform })
+      return (
+        <div style={{ display: "flex", flexFlow: "row" }}>
+          {PlatformIcon({ platform })}
+          {(child as unknown as OdDriveItem).members && <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="16" width="16"
+            viewBox="0 0 16 16"
+            focusable="false"
+            style={{
+              pointerEvents: "none",
+              width: "0.7rem",
+              height: "0.7rem",
+              flexShrink: "0",
+              position: "relative",
+              marginTop: "auto",
+              marginLeft: "-0.32rem",
+              marginBottom: "-0.26rem",
+            }}>
+              <path style={{
+                  fillRule: 'evenodd',
+                  clipRule: 'evenodd',
+                  fill: '#2BA640'
+                }}
+                d="M8,1C4.1,1,1,4.1,1,8s3.1,7,7,7s7-3.1,7-7S11.9,1,8,1z M10.5,11.5L8,9.9l-2.5,1.6l0.7-3L4,6.5l2.9-0.2L8,3.5
+                l1.1,2.8L12,6.5l-2.2,2C9.8,8.5,10.5,11.5,10.5,11.5z"
+              />
+          </svg>}
+        </div>
+      )
   }
   return render ? (
     <span>{emoji ? emoji[0] : '📁'}</span>

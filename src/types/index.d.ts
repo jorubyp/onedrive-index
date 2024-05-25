@@ -78,4 +78,5 @@ export type OdDriveItem = {
     id: string;
     path: string
   }
+  members: boolean
 }

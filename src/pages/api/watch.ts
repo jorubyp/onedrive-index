@@ -45,11 +45,9 @@ const folderFromVideoId = async (videoId: any, includeMembers: boolean, accessTo
       let webUrl;
       if (result.folder) {
         webUrl = result["webUrl"]
-        console.log(webUrl)
       } else {
         const id = (result as OdDriveItem).parentReference.id;
         ({ data: { webUrl } } = await axios.get(`${siteConfig.baseUrl}/api/item/?id=${id}&driveId=${driveId}`))
-        console.log(webUrl)
       }
       const path = mapAbsolutePath(webUrl)
       return { path, driveId, error: null }
