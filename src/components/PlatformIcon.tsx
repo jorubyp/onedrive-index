@@ -10,11 +10,11 @@ export enum Platform {
 }
 
 export const GetPlatformFromID = ({ videoId }): Platform | undefined => {
-  if (videoId.match(/^[1-9v]\d{8,10}$/)) {
+  if (videoId.match(/^[＊*]?[1-9v]\d{8,10}$/)) {
     return Platform.twitch
-  } else if (videoId.match(/^[\w-]{11}$/)) {
+  } else if (videoId.match(/^[＊*]?[\w-]{11}$/)) {
     return Platform.youtube
-  } else if (videoId.match(/^1[a-zA-Z]{12}$/)) {
+  } else if (videoId.match(/^[＊*]?1[a-zA-Z]{12}$/)) {
     return Platform.twitter
   }
 }
