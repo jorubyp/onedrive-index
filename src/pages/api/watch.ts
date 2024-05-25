@@ -117,6 +117,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
 
     const files: OdFileObject[] = folderChildren.filter(child => child.file)
+    for (const file of files) {
+      const driveId = (file as unknown as OdDriveItem).parentReference.driveId
+      if (siteConfig.drives_members.includes(driveId)) {
+        (file as unknown as OdDriveItem).members = true
+      }
+    }
 
     // Batch request thumbnail urls for children that are not folders
     const thumbnailUrls = await thumbnailsRequest(files, accessToken)

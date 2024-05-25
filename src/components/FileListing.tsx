@@ -143,7 +143,12 @@ export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
   if (videoId) {
     const platform = GetPlatformFromID({ videoId })
       return (
-        <div style={{ display: "flex", flexFlow: "row" }}>
+        <div style={{
+          display: "flex",
+          flexFlow: "row",
+          marginTop: 'auto',
+          marginBottom: 'auto'
+        }}>
           {PlatformIcon({ platform })}
           {(child as unknown as OdDriveItem).members && <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -152,13 +157,14 @@ export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
             focusable="false"
             style={{
               pointerEvents: "none",
-              width: "0.7rem",
-              height: "0.7rem",
+              width: "0.8rem",
+              height: "0.8rem",
               flexShrink: "0",
               position: "relative",
               marginTop: "auto",
-              marginLeft: "-0.32rem",
-              marginBottom: "-0.26rem",
+              marginLeft: "-0.35rem",
+              marginBottom: "-0.3rem",
+              marginRight: "-0.2rem"
             }}>
               <path style={{
                   fillRule: 'evenodd',
