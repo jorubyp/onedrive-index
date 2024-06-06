@@ -151,8 +151,8 @@ export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
 }
 
 
-const AudioPlayer = React.memo<{ file: OdFileObject, path: string }>(function AudioPlayer({ file, path }) {
-  return <AudioPreview file={file} path={path}/>;
+const AudioPlayer = React.memo<{ file: OdFileObject, path: string, thumbFile: OdFileObject | undefined }>(function AudioPlayer({ file, path, thumbFile }) {
+  return <AudioPreview file={file} path={path} thumbFile={thumbFile}/>;
 });
 
 const VideoPlayer = React.memo<{
@@ -214,7 +214,7 @@ const WatchPage: FC<{ query: ParsedUrlQuery, files: OdFileObject[] }> = ({ query
       <Toaster />
 
       {videoFile && <VideoPlayer { ...folderProps } file={videoFile as OdFileObject} thumbFile={thumbFile as OdFileObject | undefined} subsFile={subsFile as OdFileObject | undefined} />}
-      {!videoFile && audioFile && <AudioPlayer { ...folderProps } file={audioFile as OdFileObject} />}
+      {!videoFile && audioFile && <AudioPlayer { ...folderProps } file={audioFile as OdFileObject} thumbFile={thumbFile} />}
       {(videoFile || audioFile) && <FolderListDownloadButtons { ...folderProps } videoFile={videoFile as OdFileObject} />}
       {readmeFile && <ReadMePreview  { ...folderProps } file={readmeFile as OdFileObject} />}
       {descFile && <DescriptionPreview  { ...folderProps } file={descFile as OdFileObject} />}
