@@ -120,7 +120,6 @@ const GetFileDetails = (file: OdFileObject) => {
 const FolderListDownloadButtons: FC<{
   path: string,
   folderChildren: OdFolderChildren[],
-  toast: any,
   videoFile: OdFileObject
 }> = ({
   path,

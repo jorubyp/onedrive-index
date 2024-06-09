@@ -91,7 +91,7 @@ const splitChannelFromTitle = (fileName: string) => {
 export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, breadcrumb = false}) => {
   const original = titleUnescape(formatChildName(name))
   
-  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+) \((?<videoId>[^\)]+)\)$/
+  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<title>.+ )?\((?<videoId>[^\)]+)\)$/
   const { path, date, title, videoId } = original.match(videoIdRegexp)?.groups || {}
 
   if (path) return path.slice(1, path.length-1)
@@ -108,8 +108,8 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
 
   if (breadcrumb && platform !== undefined) return videoId
 
-  let displayName = title
-  if (platform === undefined) displayName += ` (${videoId})`
+  let displayName = title ?? ''
+  if (platform === undefined) displayName += ` ${videoId}`
 
   const ymdRegexp = /(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/
   const { year, month, day } = date.match(ymdRegexp)?.groups || {}
@@ -136,9 +136,20 @@ export const ChildName: FC<{ name: string; breadcrumb?: boolean }> = ({ name, br
   )
 }
 
+/*
+<polyline
+  style={{
+    fillRule: 'evenodd',
+    clipRule: 'evenodd',
+    fill: '#18181b'
+  }}
+  points="8,9.9 5.5,11.5 6.2,8.5 4,6.5 6.9,6.3 8,3.5 9.1,6.3 12,6.5 9.8,8.5 10.5,11.5 8,9.9 "
+/>
+*/
+
 export const ChildIcon: FC<{ child: OdFolderChildren }> = ({ child }) => {
   const { render, emoji } = renderEmoji(child.name)
-  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const videoIdRegexp = / \((?<videoId>[^\)]+)\)$/
   const { videoId } = child.name.match(videoIdRegexp)?.groups || {}
   if (videoId) {
     const platform = GetPlatformFromID({ videoId })

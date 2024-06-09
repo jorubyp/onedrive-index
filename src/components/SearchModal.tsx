@@ -92,7 +92,7 @@ function SearchResultItemTemplate({
   disabled: boolean
 }) {
   
-  const videoIdRegexp = /(?<path>\/.*\/)?\[(?<date>\d{8})\] (?<titlechannel>.+) \((?<videoId>[^\)]+)\)$/
+  const videoIdRegexp = / \((?<videoId>[^\)]+)\)$/
   const { videoId } = driveItem.name.match(videoIdRegexp)?.groups || {}
   const url = videoId ? `/watch?v=${videoId}` : driveItemPath
   return (
