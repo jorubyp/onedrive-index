@@ -18,7 +18,15 @@ function mapAbsolutePath(path: string): string {
   // replace URL sensitive characters such as the # with %23
   return absolutePath[1]
     .split('/')
-    .map(p => decodeURIComponent(decodeURIComponent(p)))
+    .map(p => {
+      let decoded = decodeURIComponent(p)
+      try {
+        decoded = decodeURIComponent(decoded)
+      } catch {
+        //
+      }
+      return decoded
+    })
     .filter(x => x)
     .join('/')
 }
