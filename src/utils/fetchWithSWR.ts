@@ -56,7 +56,7 @@ export function useProtectedSWRInfinite(path: string = '') {
     if (pageIndex === 0) return `/api/?path=${path}&members=${JSON.stringify(includeMembers)}`
 
     // Add nextPage token to API endpoint
-    return `/api/?path=${path}&members=${JSON.stringify(includeMembers)}next=${previousPageData.next}`
+    return `/api/?path=${path}&members=${JSON.stringify(includeMembers)}&next=${previousPageData.next}`
   }
 
   // Disable auto-revalidate, these options are equivalent to useSWRImmutable
