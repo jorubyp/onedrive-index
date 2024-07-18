@@ -10,6 +10,9 @@ import { encodePath, getAccessToken } from '.'
 import { sanitiseQuery } from './search'
 import axios from 'axios'
 
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 function mapAbsolutePath(path: string): string {
   // path is in the format of '/drive/root:/path/to/file', if baseDirectory is '/' then we split on 'root:',
   // otherwise we split on the user defined 'baseDirectory'
@@ -71,10 +74,6 @@ const folderFromVideoId = async (videoId: any, includeMembers: boolean, accessTo
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   
   let { videoId, members = 'false' } = req.query
-
-  // Set edge function caching for faster load times, check docs:
-  // https://vercel.com/docs/concepts/functions/edge-caching
-  res.setHeader('Cache-Control', apiConfig.cacheControlHeader)
 
   const includeMembers: boolean = JSON.parse(members as string)
 
@@ -139,6 +138,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     
     if (files.length) {
+      // Set edge function caching for faster load times, check docs:
+      // https://vercel.com/docs/concepts/functions/edge-caching
+      res.setHeader('Cache-Control', apiConfig.cacheControlHeader)
       files.sort((a, b) => a.name.localeCompare(b.name))
       res.status(200).json({ path, files })
       return
