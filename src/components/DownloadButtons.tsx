@@ -79,13 +79,15 @@ const fileTypeColors = {
   "Description": "grey",
   "Metadata": "cyan",
   "Live Chat": "yellow",
+  "Subtitles": "indigo",
 }
 
 const types = {
   Video: ["mp4","mkv"],
   "Audio Only": ["m4a","mp3","ogg"],
   Thumbnail: ["jpg","png","webp"],
-  Description: ["description"]
+  Description: ["description"],
+  Subtitles: ["vtt"]
 }
 
 const GetFileDetails = (file: OdFileObject) => {
