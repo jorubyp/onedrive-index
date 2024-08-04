@@ -24,7 +24,7 @@ const FolderListLayout = ({
   videoList
 }) => (
   <div className="rounded bg-white shadow-sm dark:bg-gray-900 dark:text-gray-100">
-    {folderChildren.filter((c: OdFolderChildren) => c.name !== "System Volume Information").map((c: OdFolderChildren, i) => { 
+    {folderChildren.map((c: OdFolderChildren, i: number) => { 
       const videoIdRegexp = / \((?<videoId>[^\)]+)\)$/
       const { videoId } = c.name.match(videoIdRegexp)?.groups || {}
       return (

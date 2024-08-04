@@ -303,18 +303,32 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
     // Find README.md file to render
     const readmeFile = folderChildren.find(c => c.name.toLowerCase() === 'readme.md')
 
-    // Hide README.md from file listing
+    // Separate unsorted folder from others
     folderChildren = folderChildren.filter(c => c.name.toLowerCase() !== 'readme.md')
+    const unsortedFolderNames = ['Unsorted', 'Misc']
+    const unsortedFolder = folderChildren.find(c => unsortedFolderNames.includes(c.name))
+
+    const hiddenFolders = [
+      "System Volume Information",
+      ...unsortedFolderNames,
+    ]
+
+    folderChildren = folderChildren.filter(c => !hiddenFolders.includes(c.name))
 
     // If all the files start with dates, sort them chronologically descencding
     const videoList = folderChildren.every(child => child.name.match(/^\[\d{8}\] .+/))
     if (videoList) folderChildren.reverse()
 
+    const folderGroups = [
+      folderChildren,
+    ]
+    
+    if (unsortedFolder) folderGroups.unshift([ unsortedFolder ])
+
     // Folder layout component props
     const folderProps = {
       toast,
-      path,
-      folderChildren
+      path
     }
 
     return (
@@ -322,7 +336,11 @@ const FileListing: FC<{ query?: ParsedUrlQuery }> = ({ query }) => {
         <Toaster />
 
         {readmeFile && <ReadMePreview  { ...folderProps } file={readmeFile as OdFileObject} />}
-        <FolderListLayout {...folderProps} videoList={videoList}/>
+        <div className='flex flex-col gap-4'>
+          {folderGroups.map((children: OdFolderChildren[], i: number) => (
+            <FolderListLayout key={i} folderChildren={children} {...folderProps} videoList={videoList}/>
+          ))}
+        </div>
         
         {!onlyOnePage && (
           <div className="rounded-b bg-white dark:bg-gray-900 dark:text-gray-100">
